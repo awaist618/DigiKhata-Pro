@@ -7,9 +7,9 @@ import 'package:khataplus/core/widgets/app_logo.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/curved_header.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/custom_text_field.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/primary_button.dart';
-import 'package:khataplus/features/auth/presentation/login/widgets/fingerprint_button.dart';
-import 'package:khataplus/features/auth/presentation/login/widgets/divider_or.dart';
 import 'package:khataplus/features/auth/presentation/register/register_screen.dart';
+import 'package:khataplus/features/auth/presentation/forgot_password/forgot_password_screen.dart';
+import 'package:khataplus/features/business/presentation/selection/business_selection_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,6 +19,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  
   late AnimationController _fadeController;
   late Animation<double> _headerFade;
   late Animation<Offset> _welcomeSlide;
@@ -49,8 +52,28 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
 
   @override
   void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
     _fadeController.dispose();
     super.dispose();
+  }
+
+  void _handleLogin() {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email == 'admin@gmail.com' && password == 'password123') {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const BusinessSelectionScreen()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid email or password. Try admin@gmail.com / password123'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
   @override
@@ -73,12 +96,12 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                     child: SafeArea(
                       bottom: false,
                       child: SizedBox(
-                        width: double.infinity, // Force full width for centering
+                        width: double.infinity,
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start, // Align to start
+                          mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            const SizedBox(height: 40), // Push down from status bar
+                            const SizedBox(height: 40),
                             const AppLogo(size: 80, animate: false),
                             const SizedBox(height: 16),
                             RichText(
@@ -140,7 +163,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 10), // Reduced slightly since header is now lower
+                      const SizedBox(height: 10),
                       SlideTransition(
                         position: _welcomeSlide,
                         child: Column(
@@ -157,21 +180,25 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                         opacity: _contentFade,
                         child: Column(
                           children: [
-                            const CustomTextField(
+                            CustomTextField(
                               hintText: 'Email or Phone Number',
                               prefixIcon: Icons.person_outline,
+                              controller: _emailController,
                             ),
                             const SizedBox(height: 18),
-                            const CustomTextField(
+                            CustomTextField(
                               hintText: 'Password',
                               prefixIcon: Icons.lock_outline,
                               isPassword: true,
+                              controller: _passwordController,
                             ),
                             const SizedBox(height: 12),
                             Align(
                               alignment: Alignment.centerRight,
                               child: InkWell(
-                                onTap: () {},
+                                onTap: () => Navigator.of(context).push(
+                                  MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+                                ),
                                 child: Text(
                                   'Forgot Password?',
                                   style: GoogleFonts.poppins(
@@ -185,17 +212,13 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                             const SizedBox(height: 28),
                             PrimaryButton(
                               text: 'Login',
-                              onPressed: () {},
+                              onPressed: _handleLogin,
                             ),
-                            const SizedBox(height: 28),
-                            const DividerOr(),
-                            const SizedBox(height: 28),
-                            FingerprintButton(onPressed: () {}),
-                            const SizedBox(height: 36),
+                            const SizedBox(height: 48),
                             Center(
                               child: InkWell(
                                 onTap: () => Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (context) => RegisterScreen()),
+                                  MaterialPageRoute(builder: (context) => const RegisterScreen()),
                                 ),
                                 child: RichText(
                                   text: TextSpan(

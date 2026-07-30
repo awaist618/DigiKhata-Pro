@@ -23,6 +23,7 @@ class AppColors {
   // Accent Palette
   static const Color amberGold = Color(0xFFFFB300);
   static const Color success = Color(0xFF10B981);
+  static const Color danger = Color(0xFFFF4C61);
   static const Color error = Color(0xFFEF4444);
   static const Color divider = Color(0xFFE5E9F0);
 
