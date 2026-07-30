@@ -5,6 +5,7 @@ class AppColors {
   static const Color deepNavy = Color(0xFF0A2540);
   static const Color primaryBlue = Color(0xFF2979FF);
   static const Color electricBlue = Color(0xFF2979FF);
+  static const Color skyBlue = Color(0xFF5B9CFF);
   static const Color accentBlue = Color(0xFF5B9CFF);
   static const Color primaryBlueDark = Color(0xFF1E63FF);
   static const Color headerMiddleBlue = Color(0xFF184EAA);

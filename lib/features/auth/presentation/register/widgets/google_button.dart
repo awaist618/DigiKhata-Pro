@@ -21,8 +21,30 @@ class GoogleButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.network(
-              'https://www.gstatic.com/images/branding/product/2x/google_g_48dp.png',
+              'https://authjs.dev/img/providers/google.svg', // More reliable SVG-based URL
               height: 24,
+              width: 24,
+              errorBuilder: (context, error, stackTrace) {
+                // Fallback to a simple colored G if network fails
+                return Container(
+                  height: 24,
+                  width: 24,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'G',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
             const SizedBox(width: 12),
             Text(

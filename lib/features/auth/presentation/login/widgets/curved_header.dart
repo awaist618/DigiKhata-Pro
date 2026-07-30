@@ -3,7 +3,8 @@ import '../../../../../core/theme/app_colors.dart';
 
 class CurvedHeader extends StatelessWidget {
   final Widget child;
-  const CurvedHeader({super.key, required this.child});
+  final double? height;
+  const CurvedHeader({super.key, required this.child, this.height});
 
   @override
   Widget build(BuildContext context) {
@@ -11,7 +12,7 @@ class CurvedHeader extends StatelessWidget {
     return ClipPath(
       clipper: HeaderClipper(),
       child: Container(
-        height: size.height * 0.48, // Significantly taller to fit the large title
+        height: height ?? size.height * 0.48, // Significantly taller to fit the large title
         width: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -25,6 +26,7 @@ class CurvedHeader extends StatelessWidget {
           ),
         ),
         child: Stack(
+          alignment: Alignment.topCenter, // Center items horizontally
           children: [
             // Decorative elements
             Positioned(

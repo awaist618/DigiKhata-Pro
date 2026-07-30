@@ -45,7 +45,7 @@ class _LogoImage extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
-        clipBehavior: Clip.antiAliasWithSaveLayer,
+        clipBehavior: Clip.antiAlias, // Better performance on iOS than antiAliasWithSaveLayer
         child: Transform.scale(
           scale: 1.3, // Significant zoom
           alignment: const Alignment(0, -0.6), // Shift focus point upwards to hide bottom text
