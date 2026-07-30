@@ -8,6 +8,8 @@ import 'package:khataplus/features/auth/presentation/login/widgets/custom_text_f
 import 'package:khataplus/features/auth/presentation/login/widgets/primary_button.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/fingerprint_button.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/divider_or.dart';
+import 'package:khataplus/features/auth/presentation/register/register_screen.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
