@@ -1,4 +1,6 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class SupabaseConstants {
-  static const String url = 'YOUR_SUPABASE_URL';
-  static const String anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnZ3Jkb21qcm50b2ZpdG1za3NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0MTQwMzQsImV4cCI6MjEwMDk5MDAzNH0.9-ynLMrQLxjJISb5C9yEWa44ZJS8Bgk9QVyoJh7NZW4';
+  static String get url => dotenv.env['SUPABASE_URL'] ?? '';
+  static String get anonKey => dotenv.env['SUPABASE_ANON_KEY'] ?? '';
 }
