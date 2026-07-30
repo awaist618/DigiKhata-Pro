@@ -7,6 +7,8 @@ import 'package:khataplus/core/widgets/app_logo.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/curved_header.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/custom_text_field.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/primary_button.dart';
+import 'package:khataplus/features/auth/presentation/login/widgets/fingerprint_button.dart';
+import 'package:khataplus/features/auth/presentation/login/widgets/divider_or.dart';
 import 'package:khataplus/features/auth/presentation/register/register_screen.dart';
 import 'package:khataplus/features/auth/presentation/forgot_password/forgot_password_screen.dart';
 import 'package:khataplus/features/business/presentation/selection/business_selection_screen.dart';
@@ -214,7 +216,11 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                               text: 'Login',
                               onPressed: _handleLogin,
                             ),
-                            const SizedBox(height: 48),
+                            const SizedBox(height: 28),
+                            const DividerOr(),
+                            const SizedBox(height: 28),
+                            FingerprintButton(onPressed: () {}),
+                            const SizedBox(height: 36),
                             Center(
                               child: InkWell(
                                 onTap: () => Navigator.of(context).push(
