@@ -35,7 +35,7 @@ class DashboardHeader extends StatelessWidget {
                 ),
               ),
               Text(
-                'Welcome back to BlueKhata',
+                'Welcome back to DigiKhata Pro',
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   color: Colors.white.withValues(alpha: 0.7),

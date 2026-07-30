@@ -24,11 +24,11 @@ Before generating any code:
 8. Always keep Android and iOS compatibility in mind.
 9. Ensure all code integrates cleanly with the existing project.
 
-# BlueKhata AI Development Guide
+# DigiKhata Pro AI Development Guide
 
 ## Project Name
 
-BlueKhata
+DigiKhata Pro
 
 ## Project Type
 
@@ -251,7 +251,7 @@ Dependency Injection
 
 # Final Goal
 
-Every generated screen, widget, feature, service, provider, repository, and database implementation should contribute toward building the complete BlueKhata application.
+Every generated screen, widget, feature, service, provider, repository, and database implementation should contribute toward building the complete DigiKhata Pro application.
 
 The AI must always consider the project as a production-ready fintech bookkeeping application and ensure that every generated code aligns with the overall architecture, design system, coding standards, and project objectives.
 

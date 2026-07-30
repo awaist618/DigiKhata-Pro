@@ -154,7 +154,7 @@ class _RegisterScreenState extends State<RegisterScreen> with TickerProviderStat
           ],
         ),
         content: Text(
-          'Your account has been created successfully. Welcome to BlueKhata!',
+          'Your account has been created successfully. Welcome to DigiKhata Pro!',
           textAlign: TextAlign.center,
           style: GoogleFonts.poppins(color: AppColors.textSecondary),
         ),

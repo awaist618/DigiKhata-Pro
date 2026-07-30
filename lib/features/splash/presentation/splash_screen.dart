@@ -54,7 +54,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   const AppLogo(size: 240),
                   const SizedBox(height: 24),
                   Text(
-                    'BlueKhata',
+                    'DigiKhata Pro',
                     style: GoogleFonts.poppins(
                       fontSize: 42,
                       fontWeight: FontWeight.bold,
