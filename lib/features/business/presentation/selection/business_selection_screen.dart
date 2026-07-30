@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
+import 'package:khataplus/core/utils/navigation_utils.dart';
 import 'package:khataplus/features/main_wrapper/main_wrapper.dart';
 import '../create/create_business_screen.dart';
 
@@ -88,7 +89,7 @@ class _BusinessSelectionScreenState extends State<BusinessSelectionScreen> {
                     Future.delayed(const Duration(milliseconds: 300), () {
                       if (mounted) {
                         Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (context) => const MainWrapper()),
+                          NavigationUtils.createRoute(const MainWrapper()),
                           (route) => false,
                         );
                       }
@@ -163,10 +164,7 @@ class _BusinessSelectionScreenState extends State<BusinessSelectionScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const CreateBusinessScreen()),
-        ),
+        onPressed: () => NavigationUtils.push(context, const CreateBusinessScreen()),
         backgroundColor: AppColors.primaryBlue,
         child: const Icon(Icons.add, color: Colors.white),
       ),

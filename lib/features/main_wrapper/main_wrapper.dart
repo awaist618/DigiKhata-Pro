@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
+import 'package:khataplus/core/utils/navigation_utils.dart';
 import 'package:khataplus/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:khataplus/features/business/presentation/selection/business_selection_screen.dart';
 
@@ -27,11 +28,7 @@ class MainWrapper extends ConsumerWidget {
               const Text('Profile'),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const BusinessSelectionScreen()),
-                  );
-                },
+                onPressed: () => NavigationUtils.push(context, const BusinessSelectionScreen()),
                 child: const Text('Switch Business'),
               ),
             ],

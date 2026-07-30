@@ -40,6 +40,7 @@ class _PrimaryButtonState extends State<PrimaryButton> with SingleTickerProvider
   }
 
   void _onTapDown(TapDownDetails details) {
+    HapticFeedback.lightImpact();
     _controller.reverse();
   }
 

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
 import 'package:khataplus/core/theme/app_text_styles.dart';
 import 'package:khataplus/core/utils/validators.dart';
+import 'package:khataplus/core/utils/navigation_utils.dart';
 import 'package:khataplus/core/widgets/app_logo.dart';
 import 'package:khataplus/features/auth/presentation/login/login_screen.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/curved_header.dart';
@@ -163,9 +164,7 @@ class _RegisterScreenState extends State<RegisterScreen> with TickerProviderStat
             child: TextButton(
               onPressed: () {
                 Navigator.pop(context); // Close dialog
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                );
+                NavigationUtils.pushReplacement(context, const LoginScreen());
               },
               child: Text(
                 'Go to Login',
@@ -348,7 +347,7 @@ class _RegisterScreenState extends State<RegisterScreen> with TickerProviderStat
                       child: InkWell(
                         onTap: () async {
                           final accepted = await Navigator.of(context).push<bool>(
-                            MaterialPageRoute(builder: (context) => const TermsScreen()),
+                            NavigationUtils.createRoute(const TermsScreen()),
                           );
                           if (accepted == true && mounted) {
                             setState(() => _agreeToTerms = true);
@@ -387,9 +386,7 @@ class _RegisterScreenState extends State<RegisterScreen> with TickerProviderStat
                 const SizedBox(height: 32),
                 Center(
                   child: InkWell(
-                    onTap: () => Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (context) => const LoginScreen()),
-                    ),
+                    onTap: () => NavigationUtils.pushReplacement(context, const LoginScreen()),
                     child: RichText(
                       text: TextSpan(
                         text: 'Already have an account? ',

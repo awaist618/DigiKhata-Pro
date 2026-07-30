@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
 import 'package:khataplus/core/theme/app_text_styles.dart';
@@ -9,6 +11,7 @@ import 'package:khataplus/features/auth/presentation/login/widgets/custom_text_f
 import 'package:khataplus/features/auth/presentation/login/widgets/primary_button.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/fingerprint_button.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/divider_or.dart';
+import 'package:khataplus/core/utils/navigation_utils.dart';
 import 'package:khataplus/features/auth/presentation/register/register_screen.dart';
 import 'package:khataplus/features/auth/presentation/forgot_password/forgot_password_screen.dart';
 import 'package:khataplus/features/business/presentation/selection/business_selection_screen.dart';
@@ -65,9 +68,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     final password = _passwordController.text.trim();
 
     if (email == 'admin@gmail.com' && password == 'password123') {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const BusinessSelectionScreen()),
-      );
+      NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -198,9 +199,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                             Align(
                               alignment: Alignment.centerRight,
                               child: InkWell(
-                                onTap: () => Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
-                                ),
+                                onTap: () => NavigationUtils.push(context, const ForgotPasswordScreen()),
                                 child: Text(
                                   'Forgot Password?',
                                   style: GoogleFonts.poppins(
@@ -223,9 +222,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                             const SizedBox(height: 36),
                             Center(
                               child: InkWell(
-                                onTap: () => Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (context) => const RegisterScreen()),
-                                ),
+                                onTap: () => NavigationUtils.push(context, const RegisterScreen()),
                                 child: RichText(
                                   text: TextSpan(
                                     text: "Don't have an account? ",

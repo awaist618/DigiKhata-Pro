@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../auth/presentation/login/login_screen.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_logo.dart';
+import 'package:khataplus/core/utils/navigation_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -18,9 +19,7 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
+        NavigationUtils.pushReplacement(context, const LoginScreen());
       }
     });
   }
