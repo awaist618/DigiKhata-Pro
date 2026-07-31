@@ -1,0 +1,14 @@
+{
+  "profile": "Profile",
+  "edit_profile": "Edit Profile",
+  "change_password": "Change Password",
+  "language": "Language",
+  "dark_mode": "Dark Mode",
+  "notifications": "Notifications",
+  "logout": "Logout",
+  "save_changes": "Save Changes",
+  "full_name": "Full Name",
+  "phone_number": "Phone Number",
+  "new_password": "New Password",
+  "confirm_password": "Confirm Password"
+}
