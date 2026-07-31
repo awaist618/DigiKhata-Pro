@@ -1,11 +1,13 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
 import 'package:khataplus/core/theme/app_text_styles.dart';
 import 'package:khataplus/core/utils/validators.dart';
 import 'package:khataplus/core/utils/navigation_utils.dart';
 import 'package:khataplus/core/widgets/app_logo.dart';
+import 'package:khataplus/core/services/supabase_service.dart';
 import 'package:khataplus/features/auth/presentation/login/login_screen.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/curved_header.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/custom_text_field.dart';
@@ -13,18 +15,19 @@ import 'package:khataplus/features/auth/presentation/login/widgets/primary_butto
 import 'package:khataplus/features/auth/presentation/login/widgets/divider_or.dart';
 import 'package:khataplus/features/auth/presentation/terms/terms_screen.dart';
 import 'package:khataplus/features/auth/data/services/terms_service.dart';
+import 'package:khataplus/features/auth/presentation/register/widgets/otp_input_field.dart';
+import 'package:khataplus/features/business/presentation/selection/business_selection_screen.dart';
 import 'widgets/google_button.dart';
 import 'widgets/glass_info_card.dart';
-import 'widgets/otp_input_field.dart';
 
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> with TickerProviderStateMixin {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _businessController = TextEditingController();
@@ -34,7 +37,7 @@ class _RegisterScreenState extends State<RegisterScreen> with TickerProviderStat
   final TermsService _termsService = TermsService();
   
   bool _agreeToTerms = false;
-  bool _isVerifying = false; // Toggle between Form and OTP view
+  bool _isVerifying = false; 
   bool _isLoading = false;
   String? _generatedOtp;
 
@@ -83,6 +86,28 @@ class _RegisterScreenState extends State<RegisterScreen> with TickerProviderStat
     if (mounted) setState(() => _agreeToTerms = accepted);
   }
 
+  void _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      final supabaseService = ref.read(supabaseServiceProvider);
+      await supabaseService.signInWithGoogle();
+      if (mounted) {
+        NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Google Sign-In failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   void _handleRegisterRequest() async {
     if (_formKey.currentState!.validate()) {
       if (!_agreeToTerms) {
@@ -97,21 +122,41 @@ class _RegisterScreenState extends State<RegisterScreen> with TickerProviderStat
       
       setState(() => _isLoading = true);
       
-      // Simulate API call to send OTP to email
-      await Future.delayed(const Duration(seconds: 2));
-      _generatedOtp = "1234"; // Fixed OTP for demonstration
-      
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _isVerifying = true;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Verification code sent to ${_emailController.text}'),
-            backgroundColor: AppColors.success,
-          ),
+      try {
+        final supabaseService = ref.read(supabaseServiceProvider);
+        
+        // This will trigger Supabase to send a real OTP to the email
+        await supabaseService.signUp(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+          data: {
+            'full_name': _nameController.text.trim(),
+            'business_name': _businessController.text.trim(),
+          },
         );
+
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _isVerifying = true;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Verification code sent to ${_emailController.text}'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Registration failed: ${e.toString()}'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
       }
     }
   }
@@ -119,18 +164,23 @@ class _RegisterScreenState extends State<RegisterScreen> with TickerProviderStat
   void _handleVerifyOtp(String otp) async {
     setState(() => _isLoading = true);
     
-    // Simulate API verification
-    await Future.delayed(const Duration(milliseconds: 1500));
-    
-    if (mounted) {
-      if (otp == _generatedOtp) {
+    try {
+      final supabaseService = ref.read(supabaseServiceProvider);
+      await supabaseService.verifyOTP(
+        email: _emailController.text.trim(),
+        token: otp,
+      );
+
+      if (mounted) {
         setState(() => _isLoading = false);
         _showSuccessDialog();
-      } else {
+      }
+    } catch (e) {
+      if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Invalid code. Please check and try again.'),
+          SnackBar(
+            content: Text('Verification failed: ${e.toString()}'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -382,7 +432,7 @@ class _RegisterScreenState extends State<RegisterScreen> with TickerProviderStat
                 const SizedBox(height: 24),
                 const DividerOr(),
                 const SizedBox(height: 24),
-                GoogleButton(onPressed: () {}),
+                GoogleButton(onPressed: _handleGoogleSignIn),
                 const SizedBox(height: 32),
                 Center(
                   child: InkWell(
@@ -429,13 +479,14 @@ class _RegisterScreenState extends State<RegisterScreen> with TickerProviderStat
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Text(
-            'A 4-digit code has been sent to ${_emailController.text}. Please enter it to verify your account.',
+            'A 6-digit code has been sent to ${_emailController.text}. Please enter it to verify your account.',
             textAlign: TextAlign.center,
             style: AppTextStyles.welcomeSubtitle.copyWith(height: 1.4),
           ),
         ),
         const SizedBox(height: 48),
         OTPInputField(
+          length: 6,
           onCompleted: _handleVerifyOtp,
         ),
         const SizedBox(height: 48),

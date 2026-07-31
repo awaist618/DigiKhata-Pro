@@ -2,10 +2,12 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
 import 'package:khataplus/core/theme/app_text_styles.dart';
 import 'package:khataplus/core/widgets/app_logo.dart';
+import 'package:khataplus/core/services/supabase_service.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/curved_header.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/custom_text_field.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/primary_button.dart';
@@ -15,17 +17,19 @@ import 'package:khataplus/core/utils/navigation_utils.dart';
 import 'package:khataplus/features/auth/presentation/register/register_screen.dart';
 import 'package:khataplus/features/auth/presentation/forgot_password/forgot_password_screen.dart';
 import 'package:khataplus/features/business/presentation/selection/business_selection_screen.dart';
+import '../register/widgets/google_button.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin {
+class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false;
   
   late AnimationController _fadeController;
   late Animation<double> _headerFade;
@@ -63,19 +67,68 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     super.dispose();
   }
 
-  void _handleLogin() {
+  void _handleLogin() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (email == 'admin@gmail.com' && password == 'password123') {
-      NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
-    } else {
+    if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Invalid email or password. Try admin@gmail.com / password123'),
+          content: Text('Please enter both email and password'),
           backgroundColor: AppColors.error,
         ),
       );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final supabaseService = ref.read(supabaseServiceProvider);
+      await supabaseService.signIn(email: email, password: password);
+      
+      if (mounted) {
+        NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
+      }
+    } catch (e) {
+      if (mounted) {
+        // Fallback for your testing convenience if Supabase isn't fully set up yet
+        if (email == 'admin@gmail.com' && password == 'password123') {
+           NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
+           return;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Login failed: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      final supabaseService = ref.read(supabaseServiceProvider);
+      await supabaseService.signInWithGoogle();
+      if (mounted) {
+        NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Google Sign-In failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -211,13 +264,17 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                               ),
                             ),
                             const SizedBox(height: 28),
-                            PrimaryButton(
-                              text: 'Login',
-                              onPressed: _handleLogin,
-                            ),
-                            const SizedBox(height: 28),
+                            _isLoading 
+                              ? const CircularProgressIndicator(color: AppColors.primaryBlue)
+                              : PrimaryButton(
+                                  text: 'Login',
+                                  onPressed: _handleLogin,
+                                ),
+                            const SizedBox(height: 24),
                             const DividerOr(),
-                            const SizedBox(height: 28),
+                            const SizedBox(height: 24),
+                            GoogleButton(onPressed: _handleGoogleSignIn),
+                            const SizedBox(height: 24),
                             FingerprintButton(onPressed: () {}),
                             const SizedBox(height: 36),
                             Center(

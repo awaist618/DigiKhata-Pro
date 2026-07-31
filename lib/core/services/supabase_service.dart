@@ -15,6 +15,18 @@ class SupabaseService {
     return await _client.auth.signUp(email: email, password: password, data: data);
   }
 
+  Future<AuthResponse> verifyOTP({required String email, required String token}) async {
+    return await _client.auth.verifyOTP(
+      email: email,
+      token: token,
+      type: OtpType.signup,
+    );
+  }
+
+  Future<AuthResponse> signInWithGoogle() async {
+    throw 'Google Sign-In is temporarily disabled. Please use Email Sign-Up.';
+  }
+
   Future<void> signOut() async {
     await _client.auth.signOut();
   }

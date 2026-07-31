@@ -9,18 +9,24 @@ import 'package:google_fonts/google_fonts.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load environment variables with safety
   try {
-    await dotenv.load(fileName: ".env");
-  } catch (e) {
-    debugPrint("Warning: .env file not found. Falling back to default values.");
-  }
+    // 1. Load environment variables
+    await dotenv.load(fileName: "assets/supabase.env");
+    
+    final supabaseUrl = dotenv.env['SUPABASE_URL'];
+    final supabaseKey = dotenv.env['SUPABASE_ANON_KEY'];
 
-  // Initialize Supabase
-  await Supabase.initialize(
-    url: dotenv.env['SUPABASE_URL'] ?? 'https://fallback.supabase.co',
-    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? 'fallback_key',
-  );
+    if (supabaseUrl != null && supabaseKey != null && supabaseUrl.isNotEmpty) {
+      // 2. Initialize Supabase
+      await Supabase.initialize(
+        url: supabaseUrl,
+        anonKey: supabaseKey,
+      );
+      debugPrint("SUPABASE: Initialized successfully");
+    }
+  } catch (e) {
+    debugPrint("SUPABASE: Initialization error: $e");
+  }
 
   runApp(
     const ProviderScope(
