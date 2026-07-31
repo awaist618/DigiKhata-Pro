@@ -1,13 +1,21 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
+import 'package:khataplus/core/services/supabase_service.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/custom_text_field.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/primary_button.dart';
 import 'package:khataplus/features/business/presentation/providers/business_provider.dart';
 import 'package:khataplus/features/customer/presentation/providers/customer_provider.dart';
 import '../../data/models/transaction_model.dart';
 import '../providers/dashboard_provider.dart';
+
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:khataplus/features/supplier/presentation/providers/supplier_provider.dart';
+
+enum TransactionParty { customer, supplier }
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
   final TransactionType type;
@@ -21,48 +29,94 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
-  String? _selectedCustomerId;
+  final _notesController = TextEditingController();
+  
+  TransactionParty _selectedParty = TransactionParty.customer;
+  String? _selectedId;
+  DateTime _selectedDate = DateTime.now();
+  XFile? _selectedImage;
   bool _isLoading = false;
 
   @override
   void dispose() {
     _amountController.dispose();
     _descriptionController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) setState(() => _selectedDate = picked);
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
+    if (image != null) setState(() => _selectedImage = image);
+  }
+
   void _handleSave() async {
-    if (_formKey.currentState!.validate() && _selectedCustomerId != null) {
+    if (_formKey.currentState!.validate() && _selectedId != null) {
       setState(() => _isLoading = true);
       
       try {
         final businessId = ref.read(selectedBusinessIdProvider);
         if (businessId == null) return;
 
-        // Implementation for adding transaction to Supabase
-        // In a real app, you'd have a TransactionRepository
         final supabase = ref.read(supabaseServiceProvider).client;
         
-        await supabase.from('transactions').insert({
+        String? imageUrl;
+        if (_selectedImage != null) {
+          final bytes = await _selectedImage!.readAsBytes();
+          final fileName = 'tx_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          final path = 'transactions/$businessId/$fileName';
+          await supabase.storage.from('transactions').uploadBinary(path, bytes);
+          imageUrl = supabase.storage.from('transactions').getPublicUrl(path);
+        }
+
+        final data = {
           'business_id': businessId,
-          'customer_id': _selectedCustomerId,
           'amount': double.parse(_amountController.text),
           'description': _descriptionController.text,
+          'notes': _notesController.text,
           'type': widget.type.name,
-          'created_at': DateTime.now().toIso8601String(),
-        });
+          'created_at': _selectedDate.toIso8601String(),
+          'image_url': imageUrl,
+        };
 
-        // Update customer balance (simplified logic)
+        if (_selectedParty == TransactionParty.customer) {
+          data['customer_id'] = _selectedId;
+        } else {
+          data['supplier_id'] = _selectedId;
+        }
+        
+        await supabase.from('transactions').insert(data);
+
+        // Update balance
         final factor = widget.type == TransactionType.credit ? 1 : -1;
         final amount = double.parse(_amountController.text) * factor;
         
-        await supabase.rpc('update_customer_balance', params: {
-          'c_id': _selectedCustomerId,
-          'amount_change': amount,
-        });
+        if (_selectedParty == TransactionParty.customer) {
+          await supabase.rpc('update_customer_balance', params: {
+            'c_id': _selectedId,
+            'amount_change': amount,
+          });
+          ref.read(customersProvider.notifier).loadCustomers();
+        } else {
+          await supabase.rpc('update_supplier_balance', params: {
+            's_id': _selectedId,
+            'amount_change': amount,
+          });
+          ref.read(suppliersProvider.notifier).loadSuppliers();
+        }
 
         ref.refresh(dashboardStatsProvider);
-        ref.read(customersProvider.notifier).loadCustomers();
 
         if (mounted) {
           Navigator.pop(context);
@@ -82,14 +136,18 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   @override
   Widget build(BuildContext context) {
     final customers = ref.watch(customersProvider).value ?? [];
+    final suppliers = ref.watch(suppliersProvider).value ?? [];
     final isCredit = widget.type == TransactionType.credit;
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          isCredit ? 'Add Credit (Cash In)' : 'Add Debit (Cash Out)',
+          isCredit ? 'Cash In (Credit)' : 'Cash Out (Debit)',
           style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
         ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -98,26 +156,67 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Party Selection (Customer/Supplier)
+              SegmentedButton<TransactionParty>(
+                segments: const [
+                  ButtonSegment(value: TransactionParty.customer, label: Text('Customer'), icon: Icon(Icons.person)),
+                  ButtonSegment(value: TransactionParty.supplier, label: Text('Supplier'), icon: Icon(Icons.business)),
+                ],
+                selected: {_selectedParty},
+                onSelectionChanged: (set) {
+                  setState(() {
+                    _selectedParty = set.first;
+                    _selectedId = null;
+                  });
+                },
+              ),
+              const SizedBox(height: 24),
+              
               Text(
-                'Select Customer',
+                'Select ${_selectedParty.name}',
                 style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _selectedCustomerId,
+                value: _selectedId,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: AppColors.inputBackground,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                 ),
-                items: customers.map((c) => DropdownMenuItem(
-                  value: c.id,
-                  child: Text(c.name),
-                )).toList(),
-                onChanged: (val) => setState(() => _selectedCustomerId = val),
-                validator: (val) => val == null ? 'Please select a customer' : null,
+                items: (_selectedParty == TransactionParty.customer 
+                        ? customers.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList()
+                        : suppliers.map((s) => DropdownMenuItem(value: s.id, child: Text(s.name))).toList()),
+                onChanged: (val) => setState(() => _selectedId = val),
+                validator: (val) => val == null ? 'Please select a ${_selectedParty.name}' : null,
               ),
               const SizedBox(height: 24),
+
+              // Date Selection
+              InkWell(
+                onTap: _pickDate,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.inputBackground,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.calendar_today, color: AppColors.primaryBlue),
+                      const SizedBox(width: 12),
+                      Text(
+                        DateFormat('dd MMMM yyyy').format(_selectedDate),
+                        style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+                      ),
+                      const Spacer(),
+                      const Text('Change', style: TextStyle(color: AppColors.primaryBlue, fontSize: 12)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
               CustomTextField(
                 hintText: 'Amount',
                 prefixIcon: Icons.attach_money,
@@ -127,15 +226,53 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               ),
               const SizedBox(height: 20),
               CustomTextField(
-                hintText: 'Description (Optional)',
+                hintText: 'Description',
                 prefixIcon: Icons.description_outlined,
                 controller: _descriptionController,
               ),
+              const SizedBox(height: 20),
+              CustomTextField(
+                hintText: 'Notes',
+                prefixIcon: Icons.notes,
+                controller: _notesController,
+              ),
+              const SizedBox(height: 24),
+
+              // Image Attachment
+              InkWell(
+                onTap: _pickImage,
+                child: Container(
+                  height: 120,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: AppColors.inputBackground,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.border, style: BorderStyle.solid),
+                  ),
+                  child: _selectedImage == null
+                      ? Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.add_a_photo_outlined, color: AppColors.textSecondary),
+                            const SizedBox(height: 8),
+                            Text('Attach Receipt Image', style: GoogleFonts.inter(color: AppColors.textSecondary)),
+                          ],
+                        )
+                      : ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.file(
+                            File(_selectedImage!.path),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                ),
+              ),
+
               const SizedBox(height: 40),
               _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : PrimaryButton(
-                      text: 'Save Transaction',
+                      text: 'Save Entry',
                       onPressed: _handleSave,
                     ),
             ],

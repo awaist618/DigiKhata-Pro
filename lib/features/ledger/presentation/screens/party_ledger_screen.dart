@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
+import 'package:khataplus/core/providers/settings_provider.dart';
 import 'package:khataplus/features/dashboard/data/models/transaction_model.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:khataplus/core/services/supabase_service.dart';
+import 'package:khataplus/features/business/presentation/providers/business_provider.dart';
+import 'package:khataplus/features/qr/presentation/widgets/customer_qr_dialog.dart';
+import 'package:khataplus/core/services/export_service.dart';
 
 class PartyLedgerScreen extends ConsumerStatefulWidget {
   final String partyId;
@@ -51,6 +54,65 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
     return (response as List).map((json) => TransactionModel.fromJson(json)).toList();
   }
 
+  void _handleExport(List<TransactionModel> transactions) {
+    final businessName = ref.read(businessNameProvider);
+    final currency = ref.read(settingsProvider).currency;
+    
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Export ${widget.partyName}\'s Ledger', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildExportOption('PDF', Icons.picture_as_pdf, Colors.red, () async {
+                  Navigator.pop(context);
+                  await ExportService.exportLedgerToPdf(
+                    title: '${widget.partyName}\'s Ledger',
+                    transactions: transactions,
+                    businessName: businessName,
+                    currency: currency,
+                  );
+                }),
+                _buildExportOption('Excel', Icons.table_chart, Colors.green, () async {
+                  Navigator.pop(context);
+                  await ExportService.exportLedgerToExcel(
+                    transactions: transactions,
+                    fileName: '${widget.partyName.replaceAll(' ', '_')}_ledger'.toLowerCase(),
+                  );
+                }),
+              ],
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExportOption(String label, IconData icon, Color color, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
+            child: Icon(icon, color: color, size: 32),
+          ),
+          const SizedBox(height: 8),
+          Text(label, style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,6 +124,32 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          if (widget.isCustomer)
+            IconButton(
+              icon: const Icon(Icons.qr_code_2, color: AppColors.primaryBlue),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => CustomerQrDialog(
+                    customerName: widget.partyName,
+                    customerId: widget.partyId,
+                    businessName: ref.read(businessNameProvider),
+                  ),
+                );
+              },
+              tooltip: 'Customer QR',
+            ),
+          IconButton(
+            icon: const Icon(Icons.file_download_outlined, color: AppColors.primaryBlue),
+            onPressed: () async {
+              final transactions = await _transactionsFuture;
+              _handleExport(transactions);
+            },
+            tooltip: 'Export Ledger',
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: FutureBuilder<List<TransactionModel>>(
         future: _transactionsFuture,
@@ -93,6 +181,7 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
           // Reverse for display (latest first)
           final reversedItems = ledgerItems.reversed.toList();
 
+          final settings = ref.watch(settingsProvider);
           return ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: reversedItems.length,
@@ -102,40 +191,59 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
               final bal = item['balance'] as double;
               final isCredit = tx.type == TransactionType.credit;
 
-              return Card(
-                elevation: 0,
-                margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              return Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 15,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(18),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(8),
+                            padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: (isCredit ? AppColors.success : AppColors.danger).withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
+                              borderRadius: BorderRadius.circular(14),
                             ),
                             child: Icon(
-                              isCredit ? Icons.add : Icons.remove,
+                              isCredit ? Icons.add_rounded : Icons.remove_rounded,
                               color: isCredit ? AppColors.success : AppColors.danger,
-                              size: 20,
+                              size: 22,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   tx.description ?? (isCredit ? 'Cash In' : 'Cash Out'),
-                                  style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: AppColors.textPrimary,
+                                  ),
                                 ),
+                                const SizedBox(height: 2),
                                 Text(
-                                  DateFormat('dd MMM yyyy, hh:mm a').format(tx.date),
-                                  style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary),
+                                  DateFormat('${settings.dateFormat}, hh:mm a').format(tx.date),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ],
                             ),
@@ -144,39 +252,83 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                '${isCredit ? "+" : "-"}₹ ${tx.amount.toStringAsFixed(0)}',
+                                '${isCredit ? "+" : "-"} ${settings.currency} ${tx.amount.toStringAsFixed(0)}',
                                 style: GoogleFonts.robotoMono(
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 18,
                                   color: isCredit ? AppColors.success : AppColors.danger,
                                 ),
                               ),
-                              Text(
-                                'Bal: ₹ ${bal.toStringAsFixed(0)}',
-                                style: GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary),
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: AppColors.background,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  'BAL: ${settings.currency} ${bal.toStringAsFixed(0)}',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
                         ],
                       ),
                       if (tx.imageUrl != null) ...[
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            tx.imageUrl!,
-                            height: 100,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
+                          borderRadius: BorderRadius.circular(16),
+                          child: Stack(
+                            children: [
+                              Image.network(
+                                tx.imageUrl!,
+                                height: 160,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                              Positioned(
+                                top: 12,
+                                right: 12,
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.5), shape: BoxShape.circle),
+                                  child: const Icon(Icons.fullscreen, color: Colors.white, size: 20),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                       if (tx.notes != null && tx.notes!.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            tx.notes!,
-                            style: GoogleFonts.inter(fontSize: 12, fontStyle: FontStyle.italic),
+                        const SizedBox(height: 12),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.background,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.notes, size: 14, color: AppColors.textSecondary),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  tx.notes!,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    fontStyle: FontStyle.italic,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],

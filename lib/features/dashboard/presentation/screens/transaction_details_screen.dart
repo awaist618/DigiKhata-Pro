@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
+import 'package:khataplus/core/providers/settings_provider.dart';
 import '../../data/models/transaction_model.dart';
 import '../providers/transaction_provider.dart';
 import 'add_transaction_screen.dart';
@@ -14,6 +15,7 @@ class TransactionDetailsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isCredit = transaction.type == TransactionType.credit;
+    final settings = ref.watch(settingsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -54,7 +56,7 @@ class TransactionDetailsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    '${isCredit ? "+" : "-"} ₹ ${transaction.amount.toStringAsFixed(2)}',
+                    '${isCredit ? "+" : "-"} ${settings.currency} ${transaction.amount.toStringAsFixed(2)}',
                     style: GoogleFonts.robotoMono(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,

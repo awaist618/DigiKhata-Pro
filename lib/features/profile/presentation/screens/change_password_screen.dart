@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -5,6 +6,8 @@ import 'package:khataplus/core/theme/app_colors.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/custom_text_field.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/primary_button.dart';
 import 'package:khataplus/features/profile/presentation/providers/profile_provider.dart';
+
+import 'package:khataplus/core/providers/settings_provider.dart';
 
 class ChangePasswordScreen extends ConsumerStatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -52,13 +55,13 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = ref.watch(themeProvider);
+    final isDarkMode = ref.watch(settingsProvider).isDarkMode;
 
     return Scaffold(
       backgroundColor: isDarkMode ? AppColors.deepNavy : AppColors.background,
       appBar: AppBar(
         title: Text(
-          'Change Password',
+          'change_password'.tr(),
           style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.transparent,
@@ -71,7 +74,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
           child: Column(
             children: [
               CustomTextField(
-                hintText: 'New Password',
+                hintText: 'new_password'.tr(),
                 prefixIcon: Icons.lock_outline,
                 isPassword: true,
                 controller: _newPasswordController,
@@ -82,7 +85,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
               ),
               const SizedBox(height: 20),
               CustomTextField(
-                hintText: 'Confirm Password',
+                hintText: 'confirm_password'.tr(),
                 prefixIcon: Icons.lock_reset_outlined,
                 isPassword: true,
                 controller: _confirmPasswordController,
@@ -95,7 +98,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
               _isLoading
                   ? const CircularProgressIndicator(color: AppColors.primaryBlue)
                   : PrimaryButton(
-                      text: 'Update Password',
+                      text: 'change_password'.tr(),
                       onPressed: _handleChangePassword,
                     ),
             ],

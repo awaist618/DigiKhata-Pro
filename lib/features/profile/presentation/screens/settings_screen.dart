@@ -53,14 +53,86 @@ class SettingsScreen extends ConsumerWidget {
             'Privacy Policy',
             null,
             Icons.privacy_tip_outlined,
-            () {},
+            () => _showPrivacyPolicy(context),
           ),
           _buildSettingTile(
             context,
             'About App',
             'v1.0.0',
             Icons.info_outline,
-            () {},
+            () => _showAboutApp(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPrivacyPolicy(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            const Icon(Icons.privacy_tip_outlined, color: AppColors.primaryBlue),
+            const SizedBox(width: 12),
+            Text('Privacy Policy', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Data Security',
+                style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Your business data is stored securely using industry-standard encryption. We use Supabase and Row-Level Security (RLS) to ensure that only you can access your data.',
+                style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Third-Party Sharing',
+                style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'We do not sell or share your personal or business information with third-party advertisers or data brokers.',
+                style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Close', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: AppColors.primaryBlue)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAboutApp(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AboutDialog(
+        applicationName: 'DigiKhata Pro',
+        applicationVersion: '1.0.0',
+        applicationIcon: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(color: AppColors.primaryBlue, borderRadius: BorderRadius.circular(12)),
+          child: const Icon(Icons.account_balance_wallet, color: Colors.white, size: 32),
+        ),
+        applicationLegalese: '© 2026 Zenvyro Labs. All rights reserved.',
+        children: [
+          const SizedBox(height: 16),
+          Text(
+            'The ultimate bookkeeping solution for small and medium businesses. Manage your customers, suppliers, and daily ledger with ease and security.',
+            style: GoogleFonts.inter(fontSize: 14),
           ),
         ],
       ),

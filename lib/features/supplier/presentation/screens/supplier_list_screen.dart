@@ -5,6 +5,9 @@ import 'package:khataplus/core/theme/app_colors.dart';
 import 'package:khataplus/core/utils/navigation_utils.dart';
 import '../providers/supplier_provider.dart';
 import 'add_edit_supplier_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:khataplus/core/providers/settings_provider.dart';
+import 'package:khataplus/features/ledger/presentation/screens/party_ledger_screen.dart';
 
 class SupplierListScreen extends ConsumerStatefulWidget {
   const SupplierListScreen({super.key});
@@ -26,6 +29,7 @@ class _SupplierListScreenState extends ConsumerState<SupplierListScreen> {
   @override
   Widget build(BuildContext context) {
     final suppliersAsync = ref.watch(suppliersProvider);
+    final settings = ref.watch(settingsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -120,57 +124,116 @@ class _SupplierListScreenState extends ConsumerState<SupplierListScreen> {
                 onDismissed: (direction) {
                   ref.read(suppliersProvider.notifier).deleteSupplier(supplier.id);
                 },
-                child: Card(
-                  elevation: 0,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    leading: CircleAvatar(
-                      radius: 25,
-                      backgroundColor: AppColors.primaryBlue.withValues(alpha: 0.1),
-                      backgroundImage: supplier.photoUrl != null ? NetworkImage(supplier.photoUrl!) : null,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 15,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                      leading: Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(18),
+                      ),
                       child: supplier.photoUrl == null
-                          ? Text(
-                              supplier.name[0].toUpperCase(),
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryBlue),
+                          ? Center(
+                              child: Text(
+                                supplier.name[0].toUpperCase(),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryBlue,
+                                ),
+                              ),
                             )
-                          : null,
+                          : ClipRRect(
+                              borderRadius: BorderRadius.circular(18),
+                              child: Image.network(supplier.photoUrl!, fit: BoxFit.cover),
+                            ),
                     ),
                     title: Text(
                       supplier.name,
-                      style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
-                    subtitle: Text(
-                      supplier.phone,
-                      style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 13),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.phone_outlined, size: 12, color: AppColors.textSecondary),
+                          const SizedBox(width: 4),
+                          Text(
+                            supplier.phone,
+                            style: GoogleFonts.inter(
+                              color: AppColors.textSecondary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     trailing: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          '₹ ${supplier.balance.abs().toStringAsFixed(0)}',
+                          '${settings.currency} ${supplier.balance.abs().toStringAsFixed(0)}',
                           style: GoogleFonts.robotoMono(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w800,
                             color: supplier.balance >= 0 ? AppColors.success : AppColors.danger,
-                            fontSize: 16,
+                            fontSize: 18,
+                            letterSpacing: -0.5,
                           ),
                         ),
-                        Text(
-                          supplier.balance >= 0 ? 'You Get' : 'You Give',
-                          style: GoogleFonts.inter(
-                            fontSize: 10,
-                            color: supplier.balance >= 0 ? AppColors.success : AppColors.danger,
+                        const SizedBox(height: 2),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: (supplier.balance >= 0 ? AppColors.success : AppColors.danger).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            supplier.balance >= 0 ? 'YOU GET' : 'YOU GIVE',
+                            style: GoogleFonts.inter(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: supplier.balance >= 0 ? AppColors.success : AppColors.danger,
+                            ),
                           ),
                         ),
                       ],
                     ),
                     onTap: () {
-                      // Navigate to Supplier Details/Ledger
+                      NavigationUtils.push(
+                        context,
+                        PartyLedgerScreen(
+                          partyId: supplier.id,
+                          partyName: supplier.name,
+                          isCustomer: false,
+                        ),
+                      );
                     },
                   ),
                 ),
+              ),
               );
             },
           );
@@ -179,6 +242,7 @@ class _SupplierListScreenState extends ConsumerState<SupplierListScreen> {
         error: (err, stack) => Center(child: Text('Error: $err')),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'add_supplier_fab',
         onPressed: () => NavigationUtils.push(context, const AddEditSupplierScreen()),
         backgroundColor: AppColors.primaryBlue,
         child: const Icon(Icons.add, color: Colors.white),

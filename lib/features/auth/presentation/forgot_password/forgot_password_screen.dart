@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:khataplus/core/services/supabase_service.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
 import 'package:khataplus/core/utils/validators.dart';
+import 'package:khataplus/core/utils/navigation_utils.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/custom_text_field.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/primary_button.dart';
 import 'widgets/forgot_password_header.dart';
 import 'widgets/forgot_password_illustration.dart';
+import 'phone_reset_verification_screen.dart';
 
-class ForgotPasswordScreen extends StatefulWidget {
+class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> with TickerProviderStateMixin {
+class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   bool _isLoading = false;
@@ -57,13 +61,42 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> with Ticker
   void _handleReset() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 2));
-      
-      if (mounted) {
-        setState(() => _isLoading = false);
-        _showSuccessDialog();
+
+      try {
+        final contact = _emailController.text.trim();
+        final supabaseService = ref.read(supabaseServiceProvider);
+        
+        final isEmail = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(contact);
+        
+        if (isEmail) {
+          await supabaseService.resetPassword(contact);
+          if (mounted) {
+            setState(() => _isLoading = false);
+            _showSuccessDialog();
+          }
+        } else {
+          // Send OTP for Phone
+          await supabaseService.resetPasswordViaPhone(contact);
+          if (mounted) {
+            setState(() => _isLoading = false);
+            NavigationUtils.push(
+              context, 
+              PhoneResetVerificationScreen(phoneNumber: contact),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          );
+        }
       }
     }
   }
@@ -85,7 +118,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> with Ticker
           ],
         ),
         content: Text(
-          'Password reset instructions have been sent to your email/phone.',
+          'Password reset instructions have been sent to your email.',
           textAlign: TextAlign.center,
           style: GoogleFonts.poppins(color: AppColors.textSecondary),
         ),
@@ -113,8 +146,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> with Ticker
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDarkMode ? AppColors.deepNavy : AppColors.background,
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
@@ -148,7 +183,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> with Ticker
                           style: GoogleFonts.poppins(
                             fontSize: 38,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary,
+                            color: isDarkMode ? Colors.white : AppColors.textPrimary,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -161,7 +196,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> with Ticker
                             textAlign: TextAlign.center,
                             style: GoogleFonts.poppins(
                               fontSize: 17,
-                              color: AppColors.textSecondary,
+                              color: isDarkMode ? Colors.white70 : AppColors.textSecondary,
                               height: 1.4,
                             ),
                           ),
@@ -196,7 +231,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> with Ticker
                           children: [
                             Text(
                               'Remember your password? ',
-                              style: GoogleFonts.poppins(color: AppColors.textSecondary),
+                              style: GoogleFonts.poppins(color: isDarkMode ? Colors.white70 : AppColors.textSecondary),
                             ),
                             InkWell(
                               onTap: () => Navigator.pop(context),

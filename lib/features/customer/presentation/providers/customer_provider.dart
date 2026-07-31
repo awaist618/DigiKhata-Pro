@@ -78,4 +78,37 @@ class CustomerNotifier extends StateNotifier<AsyncValue<List<CustomerModel>>> {
       state = AsyncValue.error(e, st);
     }
   }
+
+  void searchCustomers(String query) {
+    final currentList = state.value;
+    if (currentList == null) return;
+    
+    if (query.isEmpty) {
+      loadCustomers();
+      return;
+    }
+
+    state = AsyncValue.data(
+      currentList.where((c) => 
+        c.name.toLowerCase().contains(query.toLowerCase()) || 
+        c.phone.contains(query)
+      ).toList()
+    );
+  }
+
+  void sortCustomers(String criteria) {
+    final currentList = state.value;
+    if (currentList == null) return;
+
+    List<CustomerModel> sortedList = List.from(currentList);
+    if (criteria == 'name') {
+      sortedList.sort((a, b) => a.name.compareTo(b.name));
+    } else if (criteria == 'balance') {
+      sortedList.sort((a, b) => b.balance.abs().compareTo(a.balance.abs()));
+    } else if (criteria == 'recent') {
+      sortedList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    }
+
+    state = AsyncValue.data(sortedList);
+  }
 }

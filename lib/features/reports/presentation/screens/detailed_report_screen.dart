@@ -5,6 +5,10 @@ import 'package:intl/intl.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
 import 'package:khataplus/features/dashboard/presentation/providers/dashboard_provider.dart';
 import 'package:khataplus/features/dashboard/data/models/transaction_model.dart';
+import 'package:khataplus/features/dashboard/presentation/screens/transaction_details_screen.dart';
+import 'package:khataplus/core/providers/settings_provider.dart';
+import 'package:khataplus/features/business/presentation/providers/business_provider.dart';
+import 'package:khataplus/core/services/export_service.dart';
 
 class DetailedReportScreen extends ConsumerStatefulWidget {
   final String reportType;
@@ -18,9 +22,74 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
   DateTimeRange? _selectedDateRange;
   String _searchQuery = '';
 
+  void _handleExport() async {
+    final stats = ref.read(dashboardStatsProvider).value;
+    final businessName = ref.read(businessNameProvider);
+    final currency = ref.read(settingsProvider).currency;
+    
+    if (stats == null) return;
+
+    final filteredTx = _filterTransactions(stats.recentTransactions);
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Export Report', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildExportOption('PDF', Icons.picture_as_pdf, Colors.red, () async {
+                  Navigator.pop(context);
+                  await ExportService.exportLedgerToPdf(
+                    title: widget.reportType,
+                    transactions: filteredTx,
+                    businessName: businessName,
+                    currency: currency,
+                  );
+                }),
+                _buildExportOption('Excel', Icons.table_chart, Colors.green, () async {
+                  Navigator.pop(context);
+                  await ExportService.exportLedgerToExcel(
+                    transactions: filteredTx,
+                    fileName: widget.reportType.replaceAll(' ', '_').toLowerCase(),
+                  );
+                }),
+              ],
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExportOption(String label, IconData icon, Color color, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
+            child: Icon(icon, color: color, size: 32),
+          ),
+          const SizedBox(height: 8),
+          Text(label, style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final statsAsync = ref.watch(dashboardStatsProvider);
+    final settings = ref.watch(settingsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -31,6 +100,14 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.file_download_outlined, color: AppColors.primaryBlue),
+            onPressed: _handleExport,
+            tooltip: 'Export Report',
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Column(
         children: [
@@ -49,7 +126,7 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
                   itemCount: filteredTx.length,
                   itemBuilder: (context, index) {
                     final tx = filteredTx[index];
-                    return _buildTransactionItem(tx);
+                    return _buildTransactionItem(tx, settings);
                   },
                 );
               },
@@ -132,39 +209,43 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
     if (picked != null) setState(() => _selectedDateRange = picked);
   }
 
-  Widget _buildTransactionItem(TransactionModel tx) {
+  Widget _buildTransactionItem(TransactionModel tx, dynamic settings) {
     final isCredit = tx.type == TransactionType.credit;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            isCredit ? Icons.add_circle : Icons.remove_circle,
-            color: isCredit ? AppColors.success : AppColors.danger,
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(tx.description ?? (isCredit ? 'Cash In' : 'Cash Out'), style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
-                Text(DateFormat('dd MMM yyyy').format(tx.date), style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-              ],
-            ),
-          ),
-          Text(
-            '₹ ${tx.amount.toStringAsFixed(0)}',
-            style: GoogleFonts.robotoMono(
-              fontWeight: FontWeight.bold,
+    return InkWell(
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TransactionDetailsScreen(transaction: tx))),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              isCredit ? Icons.add_circle : Icons.remove_circle,
               color: isCredit ? AppColors.success : AppColors.danger,
             ),
-          ),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(tx.description ?? (isCredit ? 'Cash In' : 'Cash Out'), style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+                  Text(DateFormat('dd MMM yyyy').format(tx.date), style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                ],
+              ),
+            ),
+            Text(
+              '${settings.currency} ${tx.amount.toStringAsFixed(0)}',
+              style: GoogleFonts.robotoMono(
+                fontWeight: FontWeight.bold,
+                color: isCredit ? AppColors.success : AppColors.danger,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -3,7 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
 import 'package:khataplus/core/utils/navigation_utils.dart';
 import 'package:khataplus/features/dashboard/presentation/dashboard_screen.dart';
-import 'package:khataplus/features/business/presentation/selection/business_selection_screen.dart';
+import 'package:khataplus/features/profile/presentation/screens/profile_screen.dart';
+import 'package:khataplus/features/customer/presentation/screens/customer_list_screen.dart';
+import 'package:khataplus/features/profile/presentation/providers/profile_provider.dart';
+import 'package:khataplus/features/supplier/presentation/screens/supplier_list_screen.dart';
+import 'package:khataplus/features/ledger/presentation/screens/ledger_screen.dart';
+import 'package:khataplus/features/reports/presentation/screens/reports_screen.dart';
+import 'package:khataplus/core/widgets/offline_indicator.dart';
+import 'package:khataplus/core/providers/settings_provider.dart';
 
 // Simple index provider for navigation
 final navIndexProvider = StateProvider<int>((ref) => 0);
@@ -17,64 +24,62 @@ class MainWrapper extends ConsumerWidget {
 
     final List<Widget> screens = [
       const DashboardScreen(),
-      const Center(child: Text('Customers')),
-      const Center(child: Text('Ledger')),
-      const Center(child: Text('Reports')),
-      Builder(
-        builder: (context) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text('Profile'),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => NavigationUtils.push(context, const BusinessSelectionScreen()),
-                child: const Text('Switch Business'),
-              ),
-            ],
-          ),
-        ),
-      ),
+      const CustomerListScreen(),
+      const LedgerScreen(),
+      const ReportsScreen(),
+      const ProfileScreen(),
     ];
 
+    final settings = ref.watch(settingsProvider);
+    final isDarkMode = settings.isDarkMode;
+
     return Scaffold(
-      body: IndexedStack(
-        index: selectedIndex,
-        children: screens,
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedIndex,
-        onDestinationSelected: (index) => ref.read(navIndexProvider.notifier).state = index,
-        backgroundColor: Colors.white,
-        indicatorColor: AppColors.primaryBlue.withValues(alpha: 0.1),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard, color: AppColors.primaryBlue),
-            label: 'Dashboard',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.people_outline),
-            selectedIcon: Icon(Icons.people, color: AppColors.primaryBlue),
-            label: 'Customers',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            selectedIcon: Icon(Icons.account_balance_wallet, color: AppColors.primaryBlue),
-            label: 'Ledger',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart, color: AppColors.primaryBlue),
-            label: 'Reports',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person, color: AppColors.primaryBlue),
-            label: 'Profile',
+      body: Column(
+        children: [
+          const OfflineIndicator(),
+          Expanded(
+            child: IndexedStack(
+              index: selectedIndex,
+              children: screens,
+            ),
           ),
         ],
       ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: NavigationBar(
+          height: 75,
+          elevation: 0,
+          selectedIndex: selectedIndex,
+          onDestinationSelected: (index) => ref.read(navIndexProvider.notifier).state = index,
+          backgroundColor: isDarkMode ? AppColors.logoNavyBottom : Colors.white,
+          indicatorColor: AppColors.primaryBlue.withValues(alpha: 0.1),
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          destinations: [
+            _buildNavDestination(Icons.dashboard_rounded, 'Dashboard', isDarkMode),
+            _buildNavDestination(Icons.people_alt_rounded, 'Customers', isDarkMode),
+            _buildNavDestination(Icons.account_balance_wallet_rounded, 'Ledger', isDarkMode),
+            _buildNavDestination(Icons.assessment_rounded, 'Reports', isDarkMode),
+            _buildNavDestination(Icons.person_rounded, 'Profile', isDarkMode),
+          ],
+        ),
+      ),
+    );
+  }
+
+  NavigationDestination _buildNavDestination(IconData icon, String label, bool isDarkMode) {
+    return NavigationDestination(
+      icon: Icon(icon, color: isDarkMode ? Colors.white60 : Colors.grey[600], size: 24),
+      selectedIcon: Icon(icon, color: AppColors.primaryBlue, size: 26),
+      label: label,
     );
   }
 }

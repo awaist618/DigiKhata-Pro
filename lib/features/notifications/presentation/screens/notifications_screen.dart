@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
+import 'package:khataplus/core/providers/settings_provider.dart';
 
-class NotificationsScreen extends StatelessWidget {
+class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+    final currency = settings.currency;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -23,14 +28,14 @@ class NotificationsScreen extends StatelessWidget {
           _buildNotificationGroup('Today'),
           _buildNotificationItem(
             'Payment Reminder',
-            'Ahmed Traders has an outstanding due of ₹ 4,500.',
+            'Ahmed Traders has an outstanding due of $currency 4,500.',
             Icons.notifications_active,
             AppColors.danger,
             '2h ago',
           ),
           _buildNotificationItem(
             'Cash In Recorded',
-            '₹ 1,200 received from Zenvyro Labs.',
+            '$currency 1,200 received from Zenvyro Labs.',
             Icons.check_circle,
             AppColors.success,
             '5h ago',

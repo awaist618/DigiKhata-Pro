@@ -62,7 +62,6 @@ class SecurityNotifier extends StateNotifier<SecurityState> {
 
       final bool didAuthenticate = await _auth.authenticate(
         localizedReason: 'Please authenticate to enable biometric login',
-        options: const AuthenticationOptions(biometricOnly: true),
       );
 
       if (didAuthenticate) {
@@ -73,8 +72,34 @@ class SecurityNotifier extends StateNotifier<SecurityState> {
       return false;
     } else {
       await _storage.write(key: 'biometric_enabled', value: 'false');
+      await _storage.delete(key: 'user_email');
+      await _storage.delete(key: 'user_password');
       state = state.copyWith(isBiometricEnabled: false);
       return true;
+    }
+  }
+
+  Future<void> saveCredentials(String email, String password) async {
+    await _storage.write(key: 'user_email', value: email);
+    await _storage.write(key: 'user_password', value: password);
+  }
+
+  Future<Map<String, String>?> getStoredCredentials() async {
+    final email = await _storage.read(key: 'user_email');
+    final password = await _storage.read(key: 'user_password');
+    if (email != null && password != null) {
+      return {'email': email, 'password': password};
+    }
+    return null;
+  }
+
+  Future<bool> authenticate() async {
+    try {
+      return await _auth.authenticate(
+        localizedReason: 'Login to DigiKhata Pro using biometrics',
+      );
+    } catch (e) {
+      return false;
     }
   }
 }

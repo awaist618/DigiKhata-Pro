@@ -5,6 +5,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
 import 'package:khataplus/features/dashboard/presentation/providers/dashboard_provider.dart';
 import 'package:khataplus/features/customer/presentation/providers/customer_provider.dart';
+import 'package:khataplus/core/providers/settings_provider.dart';
+import '../providers/analytics_provider.dart';
 
 class AnalyticsScreen extends ConsumerWidget {
   const AnalyticsScreen({super.key});
@@ -13,6 +15,8 @@ class AnalyticsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(dashboardStatsProvider);
     final customersAsync = ref.watch(customersProvider);
+    final analytics = ref.watch(analyticsDataProvider);
+    final settings = ref.watch(settingsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -30,13 +34,13 @@ class AnalyticsScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildCashFlowChart(stats),
+              if (analytics != null) _buildCashFlowChart(analytics),
               const SizedBox(height: 24),
-              _buildStatGrid(stats),
+              if (analytics != null) _buildStatGrid(analytics, settings),
               const SizedBox(height: 24),
-              _buildTopCustomers(customersAsync),
+              _buildTopCustomers(customersAsync, settings),
               const SizedBox(height: 24),
-              _buildOutstandingDues(customersAsync),
+              _buildOutstandingDues(customersAsync, settings),
               const SizedBox(height: 40),
             ],
           ),
@@ -47,7 +51,11 @@ class AnalyticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCashFlowChart(dynamic stats) {
+  Widget _buildCashFlowChart(AnalyticsData data) {
+    double maxVal = 0;
+    for(var v in data.weeklyRevenue) if(v > maxVal) maxVal = v;
+    for(var v in data.weeklyExpense) if(v > maxVal) maxVal = v;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -65,7 +73,7 @@ class AnalyticsScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Revenue vs Expense',
+            'Revenue vs Expense (Weekly)',
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 24),
@@ -74,24 +82,17 @@ class AnalyticsScreen extends ConsumerWidget {
             child: BarChart(
               BarChartData(
                 alignment: BarChartAlignment.spaceAround,
-                maxY: 20,
-                barTouchData: BarTouchData(enabled: false),
+                maxY: maxVal + 1000,
+                barTouchData: BarTouchData(enabled: true),
                 titlesData: const FlTitlesData(show: false),
                 borderData: FlBorderData(show: false),
-                barGroups: [
-                  BarChartGroupData(x: 0, barRods: [
-                    BarChartRodData(toY: 8, color: AppColors.primaryBlue, width: 16),
-                    BarChartRodData(toY: 5, color: AppColors.danger, width: 16),
-                  ]),
-                  BarChartGroupData(x: 1, barRods: [
-                    BarChartRodData(toY: 12, color: AppColors.primaryBlue, width: 16),
-                    BarChartRodData(toY: 8, color: AppColors.danger, width: 16),
-                  ]),
-                  BarChartGroupData(x: 2, barRods: [
-                    BarChartRodData(toY: 15, color: AppColors.primaryBlue, width: 16),
-                    BarChartRodData(toY: 10, color: AppColors.danger, width: 16),
-                  ]),
-                ],
+                barGroups: List.generate(7, (i) => BarChartGroupData(
+                  x: i,
+                  barRods: [
+                    BarChartRodData(toY: data.weeklyRevenue[i], color: AppColors.primaryBlue, width: 12),
+                    BarChartRodData(toY: data.weeklyExpense[i], color: AppColors.danger, width: 12),
+                  ],
+                )),
               ),
             ),
           ),
@@ -119,41 +120,72 @@ class AnalyticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatGrid(dynamic stats) {
+  Widget _buildStatGrid(AnalyticsData data, AppSettings settings) {
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
       crossAxisSpacing: 16,
       mainAxisSpacing: 16,
-      childAspectRatio: 1.5,
+      childAspectRatio: 1.2,
       children: [
-        _buildSmallStatCard('Net Profit', '₹ 15,200', Icons.trending_up, Colors.green),
-        _buildSmallStatCard('Cash Flow', '₹ 45,000', Icons.sync_alt, Colors.blue),
+        _buildSmallStatCard('Net Profit', '${settings.currency} ${data.netProfit.toStringAsFixed(0)}', Icons.trending_up, Colors.green),
+        _buildSmallStatCard('Total Volume', '${settings.currency} ${data.cashFlow.toStringAsFixed(0)}', Icons.sync_alt, Colors.blue),
       ],
     );
   }
 
   Widget _buildSmallStatCard(String title, String value, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: color, size: 20),
-          const Spacer(),
-          Text(title, style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary)),
-          Text(value, style: GoogleFonts.robotoMono(fontWeight: FontWeight.bold, fontSize: 16)),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: GoogleFonts.robotoMono(
+              fontWeight: FontWeight.w800,
+              fontSize: 20,
+              color: AppColors.textPrimary,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildTopCustomers(AsyncValue<List<dynamic>> customersAsync) {
+  Widget _buildTopCustomers(AsyncValue<List<dynamic>> customersAsync, AppSettings settings) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -161,7 +193,7 @@ class AnalyticsScreen extends ConsumerWidget {
         const SizedBox(height: 12),
         customersAsync.when(
           data: (customers) => Column(
-            children: customers.take(3).map((c) => _buildMiniListTile(c.name, '₹ ${c.balance.toStringAsFixed(0)}', Icons.person)).toList(),
+            children: customers.take(3).map((c) => _buildMiniListTile(c.name, '${settings.currency} ${c.balance.toStringAsFixed(0)}', Icons.person)).toList(),
           ),
           loading: () => const CircularProgressIndicator(),
           error: (e, s) => Container(),
@@ -170,7 +202,7 @@ class AnalyticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildOutstandingDues(AsyncValue<List<dynamic>> customersAsync) {
+  Widget _buildOutstandingDues(AsyncValue<List<dynamic>> customersAsync, AppSettings settings) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -181,7 +213,7 @@ class AnalyticsScreen extends ConsumerWidget {
             children: customers
                 .where((c) => c.balance < 0)
                 .take(3)
-                .map((c) => _buildMiniListTile(c.name, '₹ ${c.balance.abs().toStringAsFixed(0)}', Icons.warning, color: Colors.red))
+                .map((c) => _buildMiniListTile(c.name, '${settings.currency} ${c.balance.abs().toStringAsFixed(0)}', Icons.warning, color: Colors.red))
                 .toList(),
           ),
           loading: () => const CircularProgressIndicator(),

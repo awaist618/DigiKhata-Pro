@@ -233,12 +233,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with TickerProv
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
         statusBarColor: Colors.transparent,
       ),
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: isDarkMode ? AppColors.deepNavy : AppColors.background,
         body: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
           child: SingleChildScrollView(
@@ -307,7 +309,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with TickerProv
                         ),
                       );
                     },
-                    child: _isVerifying ? _buildOTPView() : _buildRegistrationForm(),
+                    child: _isVerifying ? _buildOTPView(isDarkMode) : _buildRegistrationForm(isDarkMode),
                   ),
                 ),
               ],
@@ -318,7 +320,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with TickerProv
     );
   }
 
-  Widget _buildRegistrationForm() {
+  Widget _buildRegistrationForm(bool isDarkMode) {
     return Column(
       key: const ValueKey('reg_form'),
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -330,12 +332,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with TickerProv
             children: [
               Text(
                 'Create Account',
-                style: AppTextStyles.welcomeTitle.copyWith(fontSize: 36),
+                style: AppTextStyles.welcomeTitle.copyWith(
+                  fontSize: 36,
+                  color: isDarkMode ? Colors.white : AppColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Start managing your business smarter',
-                style: AppTextStyles.welcomeSubtitle,
+                style: AppTextStyles.welcomeSubtitle.copyWith(
+                  color: isDarkMode ? Colors.white70 : AppColors.textSecondary,
+                ),
               ),
             ],
           ),
@@ -391,6 +398,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with TickerProv
                       value: _agreeToTerms,
                       onChanged: (val) => setState(() => _agreeToTerms = val ?? false),
                       activeColor: AppColors.primaryBlue,
+                      side: BorderSide(color: isDarkMode ? Colors.white54 : AppColors.border),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                     ),
                     Expanded(
@@ -406,7 +414,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with TickerProv
                         child: RichText(
                           text: TextSpan(
                             text: 'I agree to ',
-                            style: GoogleFonts.poppins(color: AppColors.textSecondary, fontSize: 14),
+                            style: GoogleFonts.poppins(
+                              color: isDarkMode ? Colors.white70 : AppColors.textSecondary, 
+                              fontSize: 14,
+                            ),
                             children: [
                               TextSpan(
                                 text: 'Terms & Conditions',
@@ -440,7 +451,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with TickerProv
                     child: RichText(
                       text: TextSpan(
                         text: 'Already have an account? ',
-                        style: GoogleFonts.poppins(fontSize: 15, color: AppColors.textSecondary),
+                        style: GoogleFonts.poppins(
+                          fontSize: 15, 
+                          color: isDarkMode ? Colors.white70 : AppColors.textSecondary,
+                        ),
                         children: [
                           TextSpan(
                             text: 'Login',
@@ -464,7 +478,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with TickerProv
     );
   }
 
-  Widget _buildOTPView() {
+  Widget _buildOTPView(bool isDarkMode) {
     return Column(
       key: const ValueKey('otp_view'),
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -472,7 +486,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with TickerProv
         const SizedBox(height: 20),
         Text(
           'Verification Code',
-          style: AppTextStyles.welcomeTitle.copyWith(fontSize: 32),
+          style: AppTextStyles.welcomeTitle.copyWith(
+            fontSize: 32,
+            color: isDarkMode ? Colors.white : AppColors.textPrimary,
+          ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 12),
@@ -481,7 +498,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with TickerProv
           child: Text(
             'A 6-digit code has been sent to ${_emailController.text}. Please enter it to verify your account.',
             textAlign: TextAlign.center,
-            style: AppTextStyles.welcomeSubtitle.copyWith(height: 1.4),
+            style: AppTextStyles.welcomeSubtitle.copyWith(
+              height: 1.4,
+              color: isDarkMode ? Colors.white70 : AppColors.textSecondary,
+            ),
           ),
         ),
         const SizedBox(height: 48),
@@ -499,7 +519,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with TickerProv
                   children: [
                     Text(
                       "Didn't receive the code? ",
-                      style: GoogleFonts.poppins(color: AppColors.textSecondary, fontSize: 15),
+                      style: GoogleFonts.poppins(
+                        color: isDarkMode ? Colors.white70 : AppColors.textSecondary, 
+                        fontSize: 15,
+                      ),
                     ),
                     InkWell(
                       onTap: _handleRegisterRequest,
@@ -521,7 +544,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with TickerProv
                   label: Text(
                     'Change Email',
                     style: GoogleFonts.poppins(
-                      color: AppColors.textSecondary,
+                      color: isDarkMode ? Colors.white70 : AppColors.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),

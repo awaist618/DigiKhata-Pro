@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:khataplus/core/services/supabase_service.dart';
 import 'package:khataplus/features/profile/data/models/user_model.dart';
 import 'package:khataplus/features/profile/data/repositories/profile_repository.dart';
@@ -45,10 +46,30 @@ class ProfileNotifier extends StateNotifier<AsyncValue<UserModel?>> {
       state = AsyncValue.error(e, st);
     }
   }
+
+  Future<void> pickAndUploadAvatar() async {
+    if (_userId == null) return;
+    
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
+    
+    if (image != null) {
+      state = const AsyncValue.loading();
+      try {
+        final bytes = await image.readAsBytes();
+        final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final url = await _repository.uploadAvatar(_userId!, bytes, fileName);
+        await _repository.updateAvatarUrl(_userId!, url);
+        
+        final currentUser = state.value;
+        if (currentUser != null) {
+          state = AsyncValue.data(currentUser.copyWith(avatarUrl: url));
+        } else {
+          await loadProfile();
+        }
+      } catch (e, st) {
+        state = AsyncValue.error(e, st);
+      }
+    }
+  }
 }
-
-// Theme Provider
-final themeProvider = StateProvider<bool>((ref) => false); // false for light, true for dark
-
-// Language Provider (if not using easy_localization directly in UI)
-final languageProvider = StateProvider<String>((ref) => 'en');

@@ -1,13 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
+import 'package:khataplus/features/analytics/presentation/providers/analytics_provider.dart';
 
-class TransactionChart extends StatelessWidget {
+class TransactionChart extends ConsumerWidget {
   const TransactionChart({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final analytics = ref.watch(analyticsDataProvider);
+
+    if (analytics == null) {
+      return const SizedBox.shrink();
+    }
+
+    // Use revenue data for the chart spots
+    final spots = List.generate(7, (index) => FlSpot(index.toDouble(), analytics.weeklyRevenue[index]));
+
+    // Calculate max Y for better scaling
+    double maxY = 0;
+    for (var spot in spots) {
+      if (spot.y > maxY) maxY = spot.y;
+    }
+    maxY = maxY == 0 ? 10 : maxY * 1.2;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -28,7 +46,7 @@ class TransactionChart extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Weekly Trend',
+                'Revenue Trend',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -42,7 +60,7 @@ class TransactionChart extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  'This Week',
+                  'Last 7 Days',
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -60,17 +78,13 @@ class TransactionChart extends StatelessWidget {
                 gridData: const FlGridData(show: false),
                 titlesData: const FlTitlesData(show: false),
                 borderData: FlBorderData(show: false),
+                minX: 0,
+                maxX: 6,
+                minY: 0,
+                maxY: maxY,
                 lineBarsData: [
                   LineChartBarData(
-                    spots: const [
-                      FlSpot(0, 3),
-                      FlSpot(1, 1),
-                      FlSpot(2, 4),
-                      FlSpot(3, 2),
-                      FlSpot(4, 5),
-                      FlSpot(5, 3),
-                      FlSpot(6, 4),
-                    ],
+                    spots: spots,
                     isCurved: true,
                     gradient: const LinearGradient(
                       colors: [AppColors.primaryBlue, AppColors.skyBlue],
@@ -97,7 +111,7 @@ class TransactionChart extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+            children: _getLastSevenDaysLabels()
                 .map((day) => Text(
                       day,
                       style: GoogleFonts.inter(
@@ -110,5 +124,17 @@ class TransactionChart extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  List<String> _getLastSevenDaysLabels() {
+    final now = DateTime.now();
+    final List<String> labels = [];
+    final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    for (int i = 6; i >= 0; i--) {
+      final date = now.subtract(Duration(days: i));
+      labels.add(days[date.weekday - 1]);
+    }
+    return labels;
   }
 }

@@ -1,27 +1,39 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:khataplus/core/services/supabase_service.dart';
+import 'package:khataplus/features/business/presentation/selection/business_selection_screen.dart';
 import '../../auth/presentation/login/login_screen.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_logo.dart';
 import 'package:khataplus/core/utils/navigation_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        NavigationUtils.pushReplacement(context, const LoginScreen());
-      }
-    });
+    _handleNavigation();
+  }
+
+  void _handleNavigation() async {
+    await Future.delayed(const Duration(seconds: 3));
+    if (!mounted) return;
+
+    final session = ref.read(supabaseServiceProvider).currentSession;
+    
+    if (session != null) {
+      NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
+    } else {
+      NavigationUtils.pushReplacement(context, const LoginScreen());
+    }
   }
 
   @override

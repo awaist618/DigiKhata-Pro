@@ -7,12 +7,17 @@ class CustomerRepository {
   CustomerRepository(this._client);
 
   Future<List<CustomerModel>> getCustomers(String businessId) async {
-    final response = await _client
-        .from('customers')
-        .select()
-        .eq('business_id', businessId)
-        .order('name');
-    return (response as List).map((json) => CustomerModel.fromJson(json)).toList();
+    try {
+      final response = await _client
+          .from('customers')
+          .select()
+          .eq('business_id', businessId)
+          .order('name');
+      return (response as List).map((json) => CustomerModel.fromJson(json)).toList();
+    } catch (e) {
+      // Return empty list if table doesn't exist yet
+      return [];
+    }
   }
 
   Future<void> addCustomer(CustomerModel customer) async {

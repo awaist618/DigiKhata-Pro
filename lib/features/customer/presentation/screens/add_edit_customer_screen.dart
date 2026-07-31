@@ -113,7 +113,7 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
               const SizedBox(height: 20),
               CustomTextField(
                 hintText: 'Address (Optional)',
-                prefixIcon: Icons.location_on_outline,
+                prefixIcon: Icons.location_on_outlined,
                 controller: _addressController,
               ),
               const SizedBox(height: 20),

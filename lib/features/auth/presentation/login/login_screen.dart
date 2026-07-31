@@ -17,6 +17,7 @@ import 'package:khataplus/core/utils/navigation_utils.dart';
 import 'package:khataplus/features/auth/presentation/register/register_screen.dart';
 import 'package:khataplus/features/auth/presentation/forgot_password/forgot_password_screen.dart';
 import 'package:khataplus/features/business/presentation/selection/business_selection_screen.dart';
+import 'package:khataplus/core/providers/security_provider.dart';
 import '../register/widgets/google_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -88,16 +89,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
       await supabaseService.signIn(email: email, password: password);
       
       if (mounted) {
+        // Successful manual login: Handle Biometric Enrollment
+        final security = ref.read(securityProvider);
+        if (security.isBiometricEnabled) {
+          // Update stored credentials if they changed
+          await ref.read(securityProvider.notifier).saveCredentials(email, password);
+        } else {
+          _promptBiometricEnrollment(email, password);
+        }
+
         NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
       }
     } catch (e) {
       if (mounted) {
-        // Fallback for your testing convenience if Supabase isn't fully set up yet
-        if (email == 'admin@gmail.com' && password == 'password123') {
-           NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
-           return;
-        }
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Login failed: ${e.toString()}'),
@@ -132,14 +136,81 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
     }
   }
 
+  void _handleBiometricLogin() async {
+    final securityNotifier = ref.read(securityProvider.notifier);
+    final credentials = await securityNotifier.getStoredCredentials();
+
+    if (credentials == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please login with password once to enable Fingerprint')),
+      );
+      return;
+    }
+
+    final authenticated = await securityNotifier.authenticate();
+    if (authenticated) {
+      setState(() => _isLoading = true);
+      try {
+        final supabaseService = ref.read(supabaseServiceProvider);
+        await supabaseService.signIn(
+          email: credentials['email']!,
+          password: credentials['password']!,
+        );
+        if (mounted) {
+          NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Biometric Login Failed: $e'), backgroundColor: AppColors.error),
+          );
+        }
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _promptBiometricEnrollment(String email, String password) async {
+    // Small delay to let business selection screen show or just show dialog before navigation
+    // Better to show it after navigation or in settings, but for UX we can show it here
+    Future.delayed(const Duration(milliseconds: 500), () async {
+      if (!mounted) return;
+      
+      final enroll = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Enable Fingerprint?'),
+          content: const Text('Would you like to use your fingerprint for future logins?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('No Thanks')),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Enable', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      );
+
+      if (enroll == true) {
+        final success = await ref.read(securityProvider.notifier).toggleBiometric(true);
+        if (success) {
+          await ref.read(securityProvider.notifier).saveCredentials(email, password);
+        }
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
         statusBarColor: Colors.transparent,
       ),
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: isDarkMode ? AppColors.deepNavy : AppColors.background,
         body: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
           child: SingleChildScrollView(
@@ -225,9 +296,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Welcome Back', style: AppTextStyles.welcomeTitle),
+                            Text(
+                              'Welcome Back', 
+                              style: AppTextStyles.welcomeTitle.copyWith(
+                                color: isDarkMode ? Colors.white : AppColors.textPrimary,
+                              ),
+                            ),
                             const SizedBox(height: 10),
-                            Text('Login to manage your business', style: AppTextStyles.welcomeSubtitle),
+                            Text(
+                              'Login to manage your business', 
+                              style: AppTextStyles.welcomeSubtitle.copyWith(
+                                color: isDarkMode ? Colors.white70 : AppColors.textSecondary,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -274,8 +355,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                             const DividerOr(),
                             const SizedBox(height: 24),
                             GoogleButton(onPressed: _handleGoogleSignIn),
-                            const SizedBox(height: 24),
-                            FingerprintButton(onPressed: () {}),
+                            if (ref.watch(securityProvider).isBiometricEnabled) ...[
+                              const SizedBox(height: 24),
+                              FingerprintButton(onPressed: _handleBiometricLogin),
+                            ],
                             const SizedBox(height: 36),
                             Center(
                               child: InkWell(
@@ -285,7 +368,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                                     text: "Don't have an account? ",
                                     style: GoogleFonts.poppins(
                                       fontSize: 16,
-                                      color: AppColors.textSecondary,
+                                      color: isDarkMode ? Colors.white70 : AppColors.textSecondary,
                                     ),
                                     children: [
                                       TextSpan(

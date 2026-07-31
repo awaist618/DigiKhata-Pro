@@ -47,8 +47,17 @@ dependencies:
   printing: ^5.14.3
   excel: ^4.0.6
   qr_flutter: ^4.1.0
+  intl: ^0.20.2
   flutter_dotenv: ^6.0.1
-  google_sign_in: ^7.2.0
+  google_sign_in: ^6.2.1
+  image_picker: ^1.2.3
+  share_plus: ^13.3.0
+  mobile_scanner: ^7.4.0
+  connectivity_plus: ^7.3.1
+  path_provider: ^2.1.6
+  path: ^1.9.1
+  local_auth: ^2.3.0
+  flutter_secure_storage: ^10.3.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -75,6 +84,7 @@ flutter:
   assets:
     - assets/supabase.env
     - assets/images/logo.png
+    - assets/translations/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

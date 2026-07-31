@@ -14,6 +14,7 @@ class ExportService {
     required String title,
     required List<TransactionModel> transactions,
     required String businessName,
+    String currency = 'Rs.',
   }) async {
     final pdf = pw.Document();
 
@@ -39,7 +40,7 @@ class ExportService {
               DateFormat('dd MMM yyyy').format(tx.date),
               tx.description ?? '-',
               tx.type == TransactionType.credit ? 'Cash In' : 'Cash Out',
-              'Rs. ${tx.amount.toStringAsFixed(2)}',
+              '$currency ${tx.amount.toStringAsFixed(2)}',
             ]).toList(),
           ),
           pw.SizedBox(height: 20),

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -5,6 +6,8 @@ import 'package:khataplus/core/theme/app_colors.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/custom_text_field.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/primary_button.dart';
 import 'package:khataplus/features/profile/presentation/providers/profile_provider.dart';
+
+import 'package:khataplus/core/providers/settings_provider.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -57,13 +60,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = ref.watch(themeProvider);
+    final isDarkMode = ref.watch(settingsProvider).isDarkMode;
 
     return Scaffold(
       backgroundColor: isDarkMode ? AppColors.deepNavy : AppColors.background,
       appBar: AppBar(
         title: Text(
-          'Edit Profile',
+          'edit_profile'.tr(),
           style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.transparent,
@@ -76,14 +79,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           child: Column(
             children: [
               CustomTextField(
-                hintText: 'Full Name',
+                hintText: 'full_name'.tr(),
                 prefixIcon: Icons.person_outline,
                 controller: _nameController,
                 validator: (val) => val == null || val.isEmpty ? 'Field required' : null,
               ),
               const SizedBox(height: 20),
               CustomTextField(
-                hintText: 'Phone Number',
+                hintText: 'phone_number'.tr(),
                 prefixIcon: Icons.phone_outlined,
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
@@ -97,7 +100,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               _isLoading
                   ? const CircularProgressIndicator(color: AppColors.primaryBlue)
                   : PrimaryButton(
-                      text: 'Save Changes',
+                      text: 'save_changes'.tr(),
                       onPressed: _handleSave,
                     ),
             ],
