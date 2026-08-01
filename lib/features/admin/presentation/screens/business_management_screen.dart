@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
 import '../providers/admin_provider.dart';
 
+import 'package:easy_localization/easy_localization.dart';
+
 class BusinessManagementScreen extends ConsumerWidget {
   const BusinessManagementScreen({super.key});
 
@@ -15,7 +17,7 @@ class BusinessManagementScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: isDarkMode ? AppColors.backgroundDark : AppColors.background,
       appBar: AppBar(
-        title: Text('Business Directory', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        title: Text('business_directory'.tr(), style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -49,7 +51,7 @@ class BusinessManagementScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(biz['name'] ?? 'Untitled Business', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16)),
-                            Text('Owner: $owner', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary)),
+                            Text('${'owner'.tr()}: $owner', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary)),
                           ],
                         ),
                       ),
@@ -59,7 +61,7 @@ class BusinessManagementScreen extends ConsumerWidget {
                           color: AppColors.success.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Text('Verified', style: TextStyle(fontSize: 10, color: AppColors.success, fontWeight: FontWeight.bold)),
+                        child: Text('verified'.tr(), style: const TextStyle(fontSize: 10, color: AppColors.success, fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/admin_stats.dart';
 import '../../data/repositories/admin_repository.dart';
-import '../../../core/services/supabase_service.dart';
+import '../../../../core/services/supabase_service.dart';
 import '../../../profile/data/models/user_model.dart';
 
 final adminRepositoryProvider = Provider<AdminRepository>((ref) {

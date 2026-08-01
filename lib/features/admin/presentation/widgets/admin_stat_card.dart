@@ -24,51 +24,55 @@ class AdminStatCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDarkMode ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
+        border: isDarkMode ? Border.all(color: Colors.white.withValues(alpha: 0.05)) : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: color.withValues(alpha: isDarkMode ? 0.1 : 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
+              Text(
+                title,
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 0.5,
                 ),
-                child: Icon(icon, color: color, size: 20),
+                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(width: 8),
-              Expanded(
+              const SizedBox(height: 4),
+              FittedBox(
+                fit: BoxFit.scaleDown,
                 child: Text(
-                  title,
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
+                  value,
+                  style: GoogleFonts.robotoMono(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: isDarkMode ? Colors.white : AppColors.textPrimary,
+                    letterSpacing: -0.5,
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: GoogleFonts.robotoMono(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isDarkMode ? Colors.white : AppColors.textPrimary,
-            ),
           ),
         ],
       ),

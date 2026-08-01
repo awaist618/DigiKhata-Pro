@@ -6,6 +6,8 @@ import '../providers/admin_provider.dart';
 import '../../../profile/data/models/user_model.dart';
 import 'package:intl/intl.dart';
 
+import 'package:easy_localization/easy_localization.dart';
+
 class UserManagementScreen extends ConsumerStatefulWidget {
   const UserManagementScreen({super.key});
 
@@ -24,7 +26,7 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
     return Scaffold(
       backgroundColor: isDarkMode ? AppColors.backgroundDark : AppColors.background,
       appBar: AppBar(
-        title: Text('User Management', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        title: Text('user_management'.tr(), style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -35,7 +37,7 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
             child: TextField(
               onChanged: (val) => setState(() => _searchQuery = val),
               decoration: InputDecoration(
-                hintText: 'Search users by name or email...',
+                hintText: 'search_users_hint'.tr(),
                 prefixIcon: const Icon(Icons.search, color: AppColors.primaryBlue),
                 filled: true,
                 fillColor: isDarkMode ? AppColors.surfaceDark : Colors.white,
@@ -52,7 +54,7 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                 ).toList();
 
                 if (filteredUsers.isEmpty) {
-                  return const Center(child: Text('No users found'));
+                  return Center(child: Text('no_users_found'.tr()));
                 }
 
                 return ListView.builder(
@@ -76,47 +78,89 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
   Widget _buildUserCard(UserModel user, bool isDarkMode) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: isDarkMode ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
+        border: isDarkMode ? Border.all(color: Colors.white.withValues(alpha: 0.05)) : null,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.2 : 0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 25,
-            backgroundColor: AppColors.primaryBlue.withValues(alpha: 0.1),
-            child: Text(user.fullName?[0].toUpperCase() ?? 'U', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryBlue)),
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.adminPrimary.withValues(alpha: 0.2), AppColors.adminPrimary.withValues(alpha: 0.05)],
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Center(
+              child: Text(
+                user.fullName?[0].toUpperCase() ?? 'U',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 20,
+                  color: AppColors.adminPrimary,
+                ),
+              ),
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(user.fullName ?? 'Unnamed User', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 15)),
-                Text(user.email, style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary)),
-                const SizedBox(height: 4),
-                Text('Joined: ${user.createdAt != null ? DateFormat('dd MMM yyyy').format(user.createdAt!) : 'N/A'}', 
-                  style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                Text(
+                  user.fullName ?? 'Unnamed User',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    color: isDarkMode ? Colors.white : AppColors.textPrimary,
+                  ),
+                ),
+                Text(
+                  user.email,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ],
             ),
           ),
-          Column(
-            children: [
-              Switch.adaptive(
-                value: !user.isBlocked,
-                activeColor: AppColors.success,
-                onChanged: (val) => _confirmBlockToggle(user.id, user.isBlocked),
-              ),
-              Text(user.isBlocked ? 'Blocked' : 'Active', style: TextStyle(fontSize: 9, color: user.isBlocked ? AppColors.danger : AppColors.success, fontWeight: FontWeight.bold)),
-            ],
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline, color: AppColors.danger, size: 20),
-            onPressed: () => _confirmDelete(user.id),
-          ),
+          _buildActionButtons(user),
         ],
       ),
+    );
+  }
+
+  Widget _buildActionButtons(UserModel user) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: Icon(
+            user.isBlocked ? Icons.lock_open_rounded : Icons.lock_outline_rounded,
+            color: user.isBlocked ? AppColors.success : AppColors.danger,
+            size: 20,
+          ),
+          onPressed: () => _confirmBlockToggle(user.id, user.isBlocked),
+          tooltip: user.isBlocked ? 'Unblock' : 'Block',
+        ),
+        IconButton(
+          icon: const Icon(Icons.delete_sweep_rounded, color: Colors.grey, size: 20),
+          onPressed: () => _confirmDelete(user.id),
+          tooltip: 'Delete',
+        ),
+      ],
     );
   }
 
@@ -124,16 +168,16 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(currentStatus ? 'Unblock User?' : 'Block User?'),
-        content: Text('Are you sure you want to ${currentStatus ? 'unblock' : 'block'} this user?'),
+        title: Text(currentStatus ? 'unblock_user_q'.tr() : 'block_user_q'.tr()),
+        content: Text(currentStatus ? 'unblock_confirm'.tr() : 'block_confirm'.tr()),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text('cancel'.tr())),
           TextButton(
             onPressed: () {
               ref.read(adminActionsProvider.notifier).toggleUserBlock(userId, !currentStatus);
               Navigator.pop(context);
             },
-            child: Text(currentStatus ? 'Unblock' : 'Block', style: const TextStyle(fontWeight: FontWeight.bold)),
+            child: Text(currentStatus ? 'active'.tr() : 'blocked'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -144,16 +188,16 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete User?'),
-        content: const Text('This action cannot be undone. All user data will be lost.'),
+        title: Text('delete_user_q'.tr()),
+        content: Text('delete_user_desc'.tr()),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text('cancel'.tr())),
           TextButton(
             onPressed: () {
               ref.read(adminActionsProvider.notifier).deleteUser(userId);
               Navigator.pop(context);
             },
-            child: const Text('Delete', style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold)),
+            child: Text('delete'.tr(), style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

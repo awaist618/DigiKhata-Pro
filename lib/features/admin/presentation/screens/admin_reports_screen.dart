@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
 
+import 'package:easy_localization/easy_localization.dart';
+
 class AdminReportsScreen extends StatelessWidget {
   const AdminReportsScreen({super.key});
 
@@ -12,17 +14,17 @@ class AdminReportsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDarkMode ? AppColors.backgroundDark : AppColors.background,
       appBar: AppBar(
-        title: Text('System Reports', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        title: Text('reports'.tr(), style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          _buildReportItem(Icons.group_outlined, 'User Growth Report', 'Analysis of new registrations', Colors.blue, isDarkMode),
-          _buildReportItem(Icons.storefront_outlined, 'Business Activity', 'Active vs Inactive businesses', Colors.orange, isDarkMode),
-          _buildReportItem(Icons.receipt_long_outlined, 'Transaction Volume', 'Total cash flow across system', Colors.green, isDarkMode),
-          _buildReportItem(Icons.warning_amber_rounded, 'Compliance Audit', 'Flagged activities and blocked users', Colors.red, isDarkMode),
+          _buildReportItem(Icons.group_outlined, 'user_growth_report'.tr(), 'user_growth_desc'.tr(), Colors.blue, isDarkMode),
+          _buildReportItem(Icons.storefront_outlined, 'business_activity'.tr(), 'business_activity_desc'.tr(), Colors.orange, isDarkMode),
+          _buildReportItem(Icons.receipt_long_outlined, 'transaction_volume'.tr(), 'transaction_volume_desc'.tr(), Colors.green, isDarkMode),
+          _buildReportItem(Icons.warning_amber_rounded, 'compliance_audit'.tr(), 'compliance_audit_desc'.tr(), Colors.red, isDarkMode),
         ],
       ),
     );

@@ -38,6 +38,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   DateTime _selectedDate = DateTime.now();
   XFile? _selectedImage;
   bool _isLoading = false;
+  bool _isPickingImage = false;
 
   @override
   void dispose() {
@@ -58,9 +59,18 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   }
 
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
-    if (image != null) setState(() => _selectedImage = image);
+    if (_isPickingImage) return;
+    setState(() => _isPickingImage = true);
+
+    try {
+      final picker = ImagePicker();
+      final image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
+      if (image != null) setState(() => _selectedImage = image);
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+    } finally {
+      if (mounted) setState(() => _isPickingImage = false);
+    }
   }
 
   void _handleSave() async {

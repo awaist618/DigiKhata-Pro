@@ -32,19 +32,46 @@ class AdminMainWrapper extends ConsumerWidget {
         index: selectedIndex,
         children: screens,
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedIndex,
-        onDestinationSelected: (index) => ref.read(adminNavIndexProvider.notifier).state = index,
-        backgroundColor: isDarkMode ? AppColors.surfaceDark : Colors.white,
-        indicatorColor: AppColors.primaryBlue.withValues(alpha: 0.1),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard, color: AppColors.primaryBlue), label: 'Dashboard'),
-          NavigationDestination(icon: Icon(Icons.people_outline), selectedIcon: Icon(Icons.people, color: AppColors.primaryBlue), label: 'Users'),
-          NavigationDestination(icon: Icon(Icons.business_outlined), selectedIcon: Icon(Icons.business, color: AppColors.primaryBlue), label: 'Businesses'),
-          NavigationDestination(icon: Icon(Icons.assessment_outlined), selectedIcon: Icon(Icons.assessment, color: AppColors.primaryBlue), label: 'Reports'),
-          NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings, color: AppColors.primaryBlue), label: 'Settings'),
-        ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.08),
+              blurRadius: 30,
+              offset: const Offset(0, -10),
+            ),
+          ],
+        ),
+        child: NavigationBar(
+          height: 70,
+          elevation: 0,
+          selectedIndex: selectedIndex,
+          onDestinationSelected: (index) => ref.read(adminNavIndexProvider.notifier).state = index,
+          backgroundColor: isDarkMode ? AppColors.adminSurface : Colors.white,
+          indicatorColor: AppColors.adminPrimary.withValues(alpha: 0.1),
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          destinations: [
+            _buildNavDest(Icons.dashboard_rounded, 'Dashboard', 0, selectedIndex, isDarkMode),
+            _buildNavDest(Icons.people_alt_rounded, 'Users', 1, selectedIndex, isDarkMode),
+            _buildNavDest(Icons.business_center_rounded, 'Businesses', 2, selectedIndex, isDarkMode),
+            _buildNavDest(Icons.analytics_rounded, 'Reports', 3, selectedIndex, isDarkMode),
+            _buildNavDest(Icons.tune_rounded, 'Settings', 4, selectedIndex, isDarkMode),
+          ],
+        ),
       ),
     );
+  }
+
+  NavigationDestination _buildNavDest(IconData icon, String label, int index, int selectedIndex, bool isDarkMode) {
+    final isSelected = index == selectedIndex;
+    return NavigationDestination(
+      icon: Icon(
+        icon,
+        color: isSelected ? AppColors.adminPrimary : (isDarkMode ? Colors.white54 : Colors.grey[600]),
+        size: isSelected ? 28 : 24,
+      ),
+      label: label,
+    );
+  }
   }
 }

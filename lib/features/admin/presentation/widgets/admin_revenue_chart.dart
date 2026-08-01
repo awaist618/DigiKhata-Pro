@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
 import '../providers/admin_provider.dart';
 
+import 'package:easy_localization/easy_localization.dart';
+
 class AdminRevenueChart extends ConsumerWidget {
   const AdminRevenueChart({super.key});
 
@@ -14,17 +16,51 @@ class AdminRevenueChart extends ConsumerWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      height: 250,
-      padding: const EdgeInsets.all(20),
+      height: 280,
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: isDarkMode ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('System Revenue Trend', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16)),
-          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'revenue_trend_sys'.tr(),
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                  color: isDarkMode ? Colors.white : AppColors.textPrimary,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.adminPrimary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text(
+                  'Live',
+                  style: TextStyle(
+                    color: AppColors.adminPrimary,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 32),
           Expanded(
             child: statsAsync.when(
               data: (stats) => BarChart(
@@ -39,7 +75,17 @@ class AdminRevenueChart extends ConsumerWidget {
                         showTitles: true,
                         getTitlesWidget: (value, meta) {
                           const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-                          return Text(days[value.toInt() % 7], style: const TextStyle(fontSize: 10, color: AppColors.textSecondary));
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: Text(
+                              days[value.toInt() % 7],
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textSecondary.withValues(alpha: 0.6),
+                              ),
+                            ),
+                          );
                         },
                       ),
                     ),
@@ -54,13 +100,17 @@ class AdminRevenueChart extends ConsumerWidget {
                       barRods: [
                         BarChartRodData(
                           toY: stats.weeklyRevenue[index],
-                          color: AppColors.primaryBlue,
-                          width: 16,
-                          borderRadius: BorderRadius.circular(4),
+                          gradient: const LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [AppColors.adminPrimary, AppColors.adminGradientEnd],
+                          ),
+                          width: 14,
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
                           backDrawRodData: BackgroundBarChartRodData(
                             show: true,
-                            toY: 1000,
-                            color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                            toY: stats.weeklyRevenue.reduce((a, b) => a > b ? a : b) + 500,
+                            color: isDarkMode ? Colors.white.withValues(alpha: 0.05) : Colors.grey[100],
                           ),
                         ),
                       ],
@@ -68,7 +118,7 @@ class AdminRevenueChart extends ConsumerWidget {
                   }),
                 ),
               ),
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.adminPrimary)),
               error: (_, __) => const SizedBox(),
             ),
           ),

@@ -6,6 +6,8 @@ import '../providers/admin_provider.dart';
 import '../widgets/admin_stat_card.dart';
 import '../widgets/admin_revenue_chart.dart';
 
+import 'package:easy_localization/easy_localization.dart';
+
 class AdminDashboard extends ConsumerWidget {
   const AdminDashboard({super.key});
 
@@ -16,47 +18,106 @@ class AdminDashboard extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: isDarkMode ? AppColors.backgroundDark : AppColors.background,
-      appBar: AppBar(
-        title: Text('Admin Control Center', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(adminStatsProvider),
-          ),
-        ],
-      ),
       body: statsAsync.when(
-        data: (stats) => SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('System Overview', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-              const SizedBox(height: 16),
-              GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 1.5,
-                children: [
-                  AdminStatCard(title: 'Total Users', value: stats.totalUsers.toString(), icon: Icons.person, color: Colors.blue),
-                  AdminStatCard(title: 'Businesses', value: stats.totalBusinesses.toString(), icon: Icons.business, color: Colors.orange),
-                  AdminStatCard(title: 'Transactions', value: stats.totalTransactions.toString(), icon: Icons.receipt_long, color: Colors.green),
-                  AdminStatCard(title: 'Revenue', value: 'PKR ${stats.totalRevenue.toStringAsFixed(0)}', icon: Icons.payments, color: Colors.purple),
-                ],
+        data: (stats) => CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 120,
+              floating: true,
+              pinned: true,
+              elevation: 0,
+              backgroundColor: AppColors.adminPrimary,
+              flexibleSpace: FlexibleSpaceBar(
+                centerTitle: false,
+                titlePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                title: Text(
+                  'admin_control_center'.tr(),
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 20,
+                    color: Colors.white,
+                  ),
+                ),
+                background: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [AppColors.adminGradientStart, AppColors.adminGradientEnd],
+                    ),
+                  ),
+                ),
               ),
-              const SizedBox(height: 24),
-              const AdminRevenueChart(),
-              const SizedBox(height: 24),
-              _buildRecentActivity(isDarkMode),
-            ],
-          ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+                  onPressed: () => ref.invalidate(adminStatsProvider),
+                ),
+                const SizedBox(width: 8),
+              ],
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'system_overview'.tr(),
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.2,
+                        color: AppColors.adminPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    GridView.count(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 1.4,
+                      children: [
+                        AdminStatCard(
+                          title: 'total_users'.tr(),
+                          value: stats.totalUsers.toString(),
+                          icon: Icons.group_add_rounded,
+                          color: Colors.blue,
+                        ),
+                        AdminStatCard(
+                          title: 'total_businesses'.tr(),
+                          value: stats.totalBusinesses.toString(),
+                          icon: Icons.store_mall_directory_rounded,
+                          color: Colors.orange,
+                        ),
+                        AdminStatCard(
+                          title: 'total_transactions'.tr(),
+                          value: stats.totalTransactions.toString(),
+                          icon: Icons.swap_horizontal_circle_rounded,
+                          color: Colors.emerald,
+                        ),
+                        AdminStatCard(
+                          title: 'total_revenue'.tr(),
+                          value: 'PKR ${stats.totalRevenue.toStringAsFixed(0)}',
+                          icon: Icons.account_balance_wallet_rounded,
+                          color: Colors.violet,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    const AdminRevenueChart(),
+                    const SizedBox(height: 24),
+                    _buildRecentActivity(isDarkMode),
+                    const SizedBox(height: 100),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.adminPrimary)),
         error: (err, _) => Center(child: Text('Error loading stats: $err')),
       ),
     );
@@ -73,7 +134,7 @@ class AdminDashboard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Recent Alerts', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16)),
+          Text('recent_alerts'.tr(), style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 16),
           // Placeholder for real activity log
           _buildActivityItem('New user registration: Muhammad Ali', '2 mins ago', Icons.person_add, Colors.blue),
