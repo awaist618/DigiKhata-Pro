@@ -22,6 +22,14 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+
+    project.plugins.withId("org.jetbrains.kotlin.android") {
+        project.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile>().configureEach {
+            compilerOptions {
+                jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+            }
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {

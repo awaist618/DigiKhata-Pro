@@ -9,6 +9,7 @@ import 'package:khataplus/features/dashboard/data/models/transaction_model.dart'
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:khataplus/core/providers/settings_provider.dart';
 import 'package:khataplus/features/dashboard/presentation/screens/transaction_details_screen.dart';
+import 'package:khataplus/features/profile/presentation/screens/tag_management_screen.dart';
 
 import 'package:easy_localization/easy_localization.dart';
 
@@ -34,6 +35,14 @@ class LedgerScreen extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: isDarkMode ? Colors.white : AppColors.textPrimary),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.style_outlined),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TagManagementScreen())),
+            tooltip: 'Manage Tags',
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: statsAsync.when(
         data: (stats) {

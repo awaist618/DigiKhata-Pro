@@ -63,61 +63,68 @@ class AdminRevenueChart extends ConsumerWidget {
           const SizedBox(height: 32),
           Expanded(
             child: statsAsync.when(
-              data: (stats) => BarChart(
-                BarChartData(
-                  alignment: BarChartAlignment.spaceAround,
-                  maxY: stats.weeklyRevenue.reduce((a, b) => a > b ? a : b) + 1000,
-                  gridData: const FlGridData(show: false),
-                  titlesData: FlTitlesData(
-                    show: true,
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 10),
-                            child: Text(
-                              days[value.toInt() % 7],
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textSecondary.withValues(alpha: 0.6),
+              data: (stats) {
+                double maxVal = stats.weeklyRevenue.isEmpty 
+                    ? 0 
+                    : stats.weeklyRevenue.reduce((a, b) => a > b ? a : b);
+                if (maxVal == 0) maxVal = 5000; // Fallback height
+
+                return BarChart(
+                  BarChartData(
+                    alignment: BarChartAlignment.spaceAround,
+                    maxY: maxVal + 1000,
+                    gridData: const FlGridData(show: false),
+                    titlesData: FlTitlesData(
+                      show: true,
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (value, meta) {
+                            const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 10),
+                              child: Text(
+                                days[value.toInt() % 7],
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textSecondary.withValues(alpha: 0.6),
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  ),
-                  borderData: FlBorderData(show: false),
-                  barGroups: List.generate(stats.weeklyRevenue.length, (index) {
-                    return BarChartGroupData(
-                      x: index,
-                      barRods: [
-                        BarChartRodData(
-                          toY: stats.weeklyRevenue[index],
-                          gradient: const LinearGradient(
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                            colors: [AppColors.adminPrimary, AppColors.adminGradientEnd],
-                          ),
-                          width: 14,
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
-                          backDrawRodData: BackgroundBarChartRodData(
-                            show: true,
-                            toY: stats.weeklyRevenue.reduce((a, b) => a > b ? a : b) + 500,
-                            color: isDarkMode ? Colors.white.withValues(alpha: 0.05) : Colors.grey[100],
-                          ),
+                            );
+                          },
                         ),
-                      ],
-                    );
-                  }),
-                ),
-              ),
+                      ),
+                      leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    ),
+                    borderData: FlBorderData(show: false),
+                    barGroups: List.generate(stats.weeklyRevenue.length, (index) {
+                      return BarChartGroupData(
+                        x: index,
+                        barRods: [
+                          BarChartRodData(
+                            toY: stats.weeklyRevenue[index],
+                            gradient: const LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              colors: [AppColors.adminPrimary, AppColors.adminGradientEnd],
+                            ),
+                            width: 14,
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+                            backDrawRodData: BackgroundBarChartRodData(
+                              show: true,
+                              toY: maxVal + 500,
+                              color: isDarkMode ? Colors.white.withValues(alpha: 0.05) : Colors.grey[100],
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
+                  ),
+                );
+              },
               loading: () => const Center(child: CircularProgressIndicator(color: AppColors.adminPrimary)),
               error: (_, __) => const SizedBox(),
             ),

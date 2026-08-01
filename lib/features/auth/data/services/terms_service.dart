@@ -83,11 +83,11 @@ class TermsService {
       ),
       TermsSection(
         title: '16. Intellectual Property',
-        content: 'All app content, designs, and logos belong to Zenvyro Labs. Unauthorized use is prohibited.',
+        content: 'All app content, designs, and logos belong to Zenvyro Labs x Awais. Unauthorized use is prohibited.',
       ),
       TermsSection(
         title: '17. Limitation of Liability',
-        content: 'Zenvyro Labs is not responsible for incorrect records entered by the user or any resulting financial discrepancies.',
+        content: 'Zenvyro Labs x Awais is not responsible for incorrect records entered by the user or any resulting financial discrepancies.',
       ),
       TermsSection(
         title: '18. Changes to Terms',

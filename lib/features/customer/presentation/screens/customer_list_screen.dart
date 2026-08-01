@@ -205,7 +205,20 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
                                   )
                                 : ClipRRect(
                                     borderRadius: BorderRadius.circular(18),
-                                    child: Image.network(customer.photoUrl!, fit: BoxFit.cover),
+                                    child: Image.network(
+                                      customer.photoUrl!, 
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) => Center(
+                                        child: Text(
+                                          customer.name[0].toUpperCase(),
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.primaryBlue,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   ),
                           ),
                           if (customer.isFavorite)

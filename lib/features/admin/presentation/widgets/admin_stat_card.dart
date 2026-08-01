@@ -21,16 +21,19 @@ class AdminStatCard extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: isDarkMode ? AppColors.surfaceDark : Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: isDarkMode ? Border.all(color: Colors.white.withValues(alpha: 0.05)) : null,
+        border: Border.all(
+          color: color.withValues(alpha: isDarkMode ? 0.15 : 0.1),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: isDarkMode ? 0.1 : 0.08),
+            color: color.withValues(alpha: isDarkMode ? 0.08 : 0.05),
             blurRadius: 20,
-            offset: const Offset(0, 8),
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -38,35 +41,48 @@ class AdminStatCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: color, size: 22),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [color.withValues(alpha: 0.2), color.withValues(alpha: 0.05)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 18),
+              ),
+              Icon(Icons.trending_up_rounded, color: color.withValues(alpha: 0.2), size: 12),
+            ],
           ),
+          const SizedBox(height: 4),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
                 style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
                   color: AppColors.textSecondary,
                   letterSpacing: 0.5,
                 ),
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               FittedBox(
                 fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
                 child: Text(
                   value,
                   style: GoogleFonts.robotoMono(
                     fontSize: 20,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w900,
                     color: isDarkMode ? Colors.white : AppColors.textPrimary,
                     letterSpacing: -0.5,
                   ),

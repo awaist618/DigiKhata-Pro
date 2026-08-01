@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
 import 'package:khataplus/core/providers/security_provider.dart';
+import 'trusted_devices_screen.dart';
 
 class SecuritySettingsScreen extends ConsumerWidget {
   const SecuritySettingsScreen({super.key});
@@ -40,14 +41,14 @@ class SecuritySettingsScreen extends ConsumerWidget {
             'Logout when app is closed',
             Icons.timer_outlined,
             security.isAutoLogoutEnabled,
-            (val) {}, // State only
+            (val) => ref.read(securityProvider.notifier).toggleAutoLogout(val),
           ),
           const SizedBox(height: 24),
           _buildActionCard(
             'Device Verification',
             'Manage trusted devices',
             Icons.devices_outlined,
-            () {},
+            () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TrustedDevicesScreen())),
           ),
         ],
       ),

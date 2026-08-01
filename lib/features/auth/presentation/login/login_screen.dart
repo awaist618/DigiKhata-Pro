@@ -108,6 +108,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
       // Fetch profile to check role
       final profile = await ref.read(profileRepositoryProvider).getProfile(supabaseService.currentUser!.id);
       
+      if (profile?.isBlocked == true) {
+        await supabaseService.signOut();
+        throw 'Your account has been blocked by an administrator.';
+      }
+
       if (mounted) {
         // Handle Biometric Enrollment
         final security = ref.read(securityProvider);
@@ -437,6 +442,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                                   ),
                                 ),
                               ),
+                            ),
+                            const SizedBox(height: 48),
+                            // Footer Branding
+                            Column(
+                              children: [
+                                Text(
+                                  'Powered by',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    color: isDarkMode ? Colors.white30 : Colors.black26,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                RichText(
+                                  text: TextSpan(
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDarkMode ? Colors.white38 : Colors.black38,
+                                      letterSpacing: 1.5,
+                                    ),
+                                    children: [
+                                      const TextSpan(text: 'ZENVYRO LABS '),
+                                      TextSpan(
+                                        text: 'X',
+                                        style: TextStyle(
+                                          color: AppColors.primaryBlue.withValues(alpha: 0.5),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const TextSpan(text: ' AWAIS'),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 20),
                           ],

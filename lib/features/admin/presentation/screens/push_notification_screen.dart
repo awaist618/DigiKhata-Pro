@@ -65,60 +65,119 @@ class _PushNotificationScreenState extends ConsumerState<PushNotificationScreen>
 
     return Scaffold(
       backgroundColor: isDarkMode ? AppColors.backgroundDark : AppColors.background,
-      appBar: AppBar(
-        title: Text('broadcaster'.tr(), style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('compose_notification'.tr(), style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
-            _buildInputField('title_hint'.tr(), 'title_hint'.tr(), Icons.title, _titleController, isDarkMode),
-            const SizedBox(height: 16),
-            _buildInputField('body_hint'.tr(), 'body_hint'.tr(), Icons.message, _bodyController, isDarkMode, maxLines: 4),
-            const SizedBox(height: 32),
-            Text('target_audience'.tr(), style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textSecondary)),
-            const SizedBox(height: 12),
-            Container(
-              decoration: BoxDecoration(color: isDarkMode ? AppColors.surfaceDark : Colors.white, borderRadius: BorderRadius.circular(20)),
-              child: Column(
-                children: [
-                  RadioListTile(
-                    value: 0, 
-                    groupValue: _targetIndex, 
-                    onChanged: (v) => setState(() => _targetIndex = v as int), 
-                    title: Text('all_users'.tr(), style: const TextStyle(fontSize: 14)),
-                    activeColor: AppColors.primaryBlue,
-                  ),
-                  RadioListTile(
-                    value: 1, 
-                    groupValue: _targetIndex, 
-                    onChanged: (v) => setState(() => _targetIndex = v as int), 
-                    title: Text('active_businesses'.tr(), style: const TextStyle(fontSize: 14)),
-                    activeColor: AppColors.primaryBlue,
-                  ),
-                ],
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SliverAppBar(
+            expandedHeight: 160,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: false,
+              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+              title: Text(
+                'broadcaster'.tr(),
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 22,
+                  color: Colors.white,
+                  letterSpacing: -0.5,
+                ),
               ),
-            ),
-            const SizedBox(height: 40),
-            _isBroadcasting 
-              ? const Center(child: CircularProgressIndicator())
-              : ElevatedButton.icon(
-                  onPressed: _handleBroadcast,
-                  icon: const Icon(Icons.send),
-                  label: Text('broadcast_now'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryBlue,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 56),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [AppColors.adminGradientStart, AppColors.adminGradientEnd],
                   ),
                 ),
-          ],
+              ),
+            ),
+          ),
+        ],
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'compose_notification'.tr(), 
+                style: GoogleFonts.poppins(
+                  fontSize: 18, 
+                  fontWeight: FontWeight.w800,
+                  color: isDarkMode ? Colors.white : AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 24),
+              _buildInputField('title_hint'.tr(), 'title_hint'.tr(), Icons.title_rounded, _titleController, isDarkMode),
+              const SizedBox(height: 16),
+              _buildInputField('body_hint'.tr(), 'body_hint'.tr(), Icons.message_rounded, _bodyController, isDarkMode, maxLines: 4),
+              const SizedBox(height: 32),
+              Text(
+                'target_audience'.tr().toUpperCase(), 
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w800, 
+                  fontSize: 12, 
+                  color: AppColors.adminPrimary,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: isDarkMode ? AppColors.surfaceDark : Colors.white, 
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: isDarkMode ? 0.2 : 0.04),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    RadioListTile(
+                      value: 0, 
+                      groupValue: _targetIndex, 
+                      onChanged: (v) => setState(() => _targetIndex = v as int), 
+                      title: Text(
+                        'all_users'.tr(), 
+                        style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14, color: isDarkMode ? Colors.white : AppColors.textPrimary),
+                      ),
+                      activeColor: AppColors.adminPrimary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    ),
+                    RadioListTile(
+                      value: 1, 
+                      groupValue: _targetIndex, 
+                      onChanged: (v) => setState(() => _targetIndex = v as int), 
+                      title: Text(
+                        'active_businesses'.tr(), 
+                        style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14, color: isDarkMode ? Colors.white : AppColors.textPrimary),
+                      ),
+                      activeColor: AppColors.adminPrimary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 40),
+              _isBroadcasting 
+                ? const Center(child: CircularProgressIndicator(color: AppColors.adminPrimary))
+                : ElevatedButton.icon(
+                    onPressed: _handleBroadcast,
+                    icon: const Icon(Icons.send_rounded),
+                    label: Text('broadcast_now'.tr(), style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 16)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.adminPrimary,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 60),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      elevation: 0,
+                    ),
+                  ),
+            ],
+          ),
         ),
       ),
     );
@@ -128,8 +187,13 @@ class _PushNotificationScreenState extends ConsumerState<PushNotificationScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            label.toUpperCase(), 
+            style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textSecondary, letterSpacing: 1.0),
+          ),
+        ),
         TextField(
           controller: controller,
           maxLines: maxLines,
@@ -137,10 +201,11 @@ class _PushNotificationScreenState extends ConsumerState<PushNotificationScreen>
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: const TextStyle(color: AppColors.textSecondary),
-            prefixIcon: Icon(icon, color: AppColors.primaryBlue, size: 20),
+            prefixIcon: Icon(icon, color: AppColors.adminPrimary, size: 20),
             filled: true,
-            fillColor: isDarkMode ? AppColors.surfaceDark : AppColors.inputBackground,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+            fillColor: isDarkMode ? AppColors.surfaceDark : Colors.white,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           ),
         ),
       ],

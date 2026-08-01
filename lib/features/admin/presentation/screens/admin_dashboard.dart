@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
-import '../providers/admin_provider.dart';
-import '../widgets/admin_stat_card.dart';
-import '../widgets/admin_revenue_chart.dart';
-
+import 'package:khataplus/features/admin/data/models/admin_stats.dart';
+import 'package:khataplus/features/admin/presentation/providers/admin_provider.dart';
+import 'package:khataplus/features/admin/presentation/widgets/admin_stat_card.dart';
+import 'package:khataplus/features/admin/presentation/widgets/admin_revenue_chart.dart';
+import 'package:khataplus/features/admin/presentation/screens/global_transaction_feed.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class AdminDashboard extends ConsumerWidget {
@@ -22,38 +23,77 @@ class AdminDashboard extends ConsumerWidget {
         data: (stats) => CustomScrollView(
           slivers: [
             SliverAppBar(
-              expandedHeight: 120,
-              floating: true,
+              expandedHeight: 180,
+              floating: false,
               pinned: true,
               elevation: 0,
               backgroundColor: AppColors.adminPrimary,
               flexibleSpace: FlexibleSpaceBar(
                 centerTitle: false,
-                titlePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                title: Text(
-                  'admin_control_center'.tr(),
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 20,
-                    color: Colors.white,
-                  ),
-                ),
-                background: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [AppColors.adminGradientStart, AppColors.adminGradientEnd],
+                titlePadding: const EdgeInsets.only(left: 20, bottom: 20),
+                title: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'admin_control_center'.tr(),
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 22,
+                        color: Colors.white,
+                        letterSpacing: -0.5,
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'System Overview & Management',
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 10,
+                        color: Colors.white70,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+                background: Stack(
+                  children: [
+                    Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [AppColors.adminGradientStart, AppColors.adminGradientEnd],
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: -50,
+                      right: -50,
+                      child: Container(
+                        width: 200,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withValues(alpha: 0.05),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               actions: [
-                IconButton(
-                  icon: const Icon(Icons.refresh_rounded, color: Colors.white),
-                  onPressed: () => ref.invalidate(adminStatsProvider),
+                Container(
+                  margin: const EdgeInsets.only(right: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.refresh_rounded, color: Colors.white, size: 20),
+                    onPressed: () => ref.invalidate(adminStatsProvider),
+                  ),
                 ),
-                const SizedBox(width: 8),
               ],
             ),
             SliverToBoxAdapter(
@@ -78,7 +118,7 @@ class AdminDashboard extends ConsumerWidget {
                       crossAxisCount: 2,
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
-                      childAspectRatio: 1.4,
+                      childAspectRatio: 1.1,
                       children: [
                         AdminStatCard(
                           title: 'total_users'.tr(),
@@ -96,20 +136,33 @@ class AdminDashboard extends ConsumerWidget {
                           title: 'total_transactions'.tr(),
                           value: stats.totalTransactions.toString(),
                           icon: Icons.swap_horizontal_circle_rounded,
-                          color: Colors.emerald,
+                          color: Colors.teal,
                         ),
                         AdminStatCard(
                           title: 'total_revenue'.tr(),
                           value: 'PKR ${stats.totalRevenue.toStringAsFixed(0)}',
                           icon: Icons.account_balance_wallet_rounded,
-                          color: Colors.violet,
+                          color: Colors.purple,
                         ),
                       ],
                     ),
                     const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GlobalTransactionFeed())),
+                      icon: const Icon(Icons.history_rounded),
+                      label: const Text('View Global Transaction Feed'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.adminPrimary.withValues(alpha: 0.1),
+                        foregroundColor: AppColors.adminPrimary,
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 0,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
                     const AdminRevenueChart(),
                     const SizedBox(height: 24),
-                    _buildRecentActivity(isDarkMode),
+                    _buildRecentActivity(stats, isDarkMode),
                     const SizedBox(height: 100),
                   ],
                 ),
@@ -123,7 +176,7 @@ class AdminDashboard extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecentActivity(bool isDarkMode) {
+  Widget _buildRecentActivity(AdminStats stats, bool isDarkMode) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -136,12 +189,33 @@ class AdminDashboard extends ConsumerWidget {
         children: [
           Text('recent_alerts'.tr(), style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 16),
-          // Placeholder for real activity log
-          _buildActivityItem('New user registration: Muhammad Ali', '2 mins ago', Icons.person_add, Colors.blue),
-          _buildActivityItem('High volume transaction detected', '1 hour ago', Icons.warning_amber, Colors.amber),
+          if (stats.recentAlerts.isEmpty)
+            Center(child: Text('No recent activity', style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 12))),
+          ...stats.recentAlerts.map((alert) {
+            IconData icon = Icons.notifications_active;
+            Color color = Colors.blue;
+            if (alert.type == 'user') {
+              icon = Icons.person_add_rounded;
+              color = Colors.blue;
+            } else if (alert.type == 'transaction') {
+              icon = Icons.warning_amber_rounded;
+              color = Colors.amber;
+            }
+            
+            final timeAgo = _getTimeAgo(alert.timestamp);
+
+            return _buildActivityItem(alert.title, timeAgo, icon, color);
+          }),
         ],
       ),
     );
+  }
+
+  String _getTimeAgo(DateTime dateTime) {
+    final diff = DateTime.now().difference(dateTime);
+    if (diff.inMinutes < 60) return '${diff.inMinutes} mins ago';
+    if (diff.inHours < 24) return '${diff.inHours} hours ago';
+    return '${diff.inDays} days ago';
   }
 
   Widget _buildActivityItem(String title, String time, IconData icon, Color color) {
@@ -151,7 +225,7 @@ class AdminDashboard extends ConsumerWidget {
         children: [
           Icon(icon, color: color, size: 20),
           const SizedBox(width: 12),
-          Expanded(child: Text(title, style: GoogleFonts.inter(fontSize: 13))),
+          Expanded(child: Text(title, style: GoogleFonts.inter(fontSize: 13, color: color == Colors.blue ? null : null))), // Just to keep logic simple
           Text(time, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
         ],
       ),

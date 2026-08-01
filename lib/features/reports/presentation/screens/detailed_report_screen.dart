@@ -24,6 +24,32 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
   DateTimeRange? _selectedDateRange;
   String _searchQuery = '';
 
+  @override
+  void initState() {
+    super.initState();
+    _initializeDateRange();
+  }
+
+  void _initializeDateRange() {
+    final now = DateTime.now();
+    if (widget.reportType == 'Daily Report') {
+      _selectedDateRange = DateTimeRange(
+        start: DateTime(now.year, now.month, now.day),
+        end: DateTime(now.year, now.month, now.day),
+      );
+    } else if (widget.reportType == 'Monthly Statement') {
+      _selectedDateRange = DateTimeRange(
+        start: DateTime(now.year, now.month, 1),
+        end: DateTime(now.year, now.month + 1, 0),
+      );
+    } else if (widget.reportType == 'Yearly Summary') {
+      _selectedDateRange = DateTimeRange(
+        start: DateTime(now.year, 1, 1),
+        end: DateTime(now.year, 12, 31),
+      );
+    }
+  }
+
   void _handleExport() async {
     final stats = ref.read(dashboardStatsProvider).value;
     final businessName = ref.read(businessNameProvider);
@@ -119,6 +145,20 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
       body: Column(
         children: [
           _buildFilters(isDarkMode),
+          statsAsync.when(
+            data: (stats) {
+              final filtered = _filterTransactions(stats.recentTransactions);
+              double totalIn = 0;
+              double totalOut = 0;
+              for (var tx in filtered) {
+                if (tx.type == TransactionType.credit) totalIn += tx.amount;
+                else totalOut += tx.amount;
+              }
+              return _buildSummaryBar(totalIn, totalOut, settings, isDarkMode);
+            },
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
           Expanded(
             child: statsAsync.when(
               data: (stats) {
@@ -226,6 +266,48 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
       initialDateRange: _selectedDateRange,
     );
     if (picked != null) setState(() => _selectedDateRange = picked);
+  }
+
+  Widget _buildSummaryBar(double totalIn, double totalOut, dynamic settings, bool isDarkMode) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDarkMode ? AppColors.surfaceDark : AppColors.primaryBlue,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryBlue.withValues(alpha: 0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildSummaryItem('Cash In', totalIn, Colors.greenAccent, settings),
+          Container(width: 1, height: 40, color: Colors.white24),
+          _buildSummaryItem('Cash Out', totalOut, Colors.orangeAccent, settings),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryItem(String label, double amount, Color color, dynamic settings) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.inter(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '${settings.currency} ${amount.toStringAsFixed(0)}',
+          style: GoogleFonts.robotoMono(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
   }
 
   Widget _buildTransactionItem(TransactionModel tx, dynamic settings, bool isDarkMode) {

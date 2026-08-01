@@ -13,49 +13,114 @@ class AdminReportsScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: isDarkMode ? AppColors.backgroundDark : AppColors.background,
-      appBar: AppBar(
-        title: Text('reports'.tr(), style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          _buildReportItem(Icons.group_outlined, 'user_growth_report'.tr(), 'user_growth_desc'.tr(), Colors.blue, isDarkMode),
-          _buildReportItem(Icons.storefront_outlined, 'business_activity'.tr(), 'business_activity_desc'.tr(), Colors.orange, isDarkMode),
-          _buildReportItem(Icons.receipt_long_outlined, 'transaction_volume'.tr(), 'transaction_volume_desc'.tr(), Colors.green, isDarkMode),
-          _buildReportItem(Icons.warning_amber_rounded, 'compliance_audit'.tr(), 'compliance_audit_desc'.tr(), Colors.red, isDarkMode),
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SliverAppBar(
+            expandedHeight: 160,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: false,
+              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+              title: Text(
+                'reports'.tr(),
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 22,
+                  color: Colors.white,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [AppColors.adminGradientStart, AppColors.adminGradientEnd],
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
+        body: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            _buildReportItem(Icons.group_rounded, 'user_growth_report'.tr(), 'user_growth_desc'.tr(), Colors.blue, isDarkMode),
+            _buildReportItem(Icons.storefront_rounded, 'business_activity'.tr(), 'business_activity_desc'.tr(), Colors.orange, isDarkMode),
+            _buildReportItem(Icons.receipt_long_rounded, 'transaction_volume'.tr(), 'transaction_volume_desc'.tr(), Colors.green, isDarkMode),
+            _buildReportItem(Icons.shield_rounded, 'compliance_audit'.tr(), 'compliance_audit_desc'.tr(), Colors.red, isDarkMode),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildReportItem(IconData icon, String title, String subtitle, Color color, bool isDarkMode) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: isDarkMode ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(
+          color: isDarkMode ? Colors.white.withValues(alpha: 0.05) : AppColors.border.withValues(alpha: 0.5),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: isDarkMode ? 0.08 : 0.04),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
-            child: Icon(icon, color: color),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [color.withValues(alpha: 0.2), color.withValues(alpha: 0.05)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(icon, color: color, size: 28),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                Text(
+                  title, 
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w800, 
+                    fontSize: 16,
+                    color: isDarkMode ? Colors.white : AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle, 
+                  style: GoogleFonts.inter(
+                    fontSize: 12, 
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ],
             ),
           ),
-          const Icon(Icons.download_outlined, color: AppColors.primaryBlue),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.adminPrimary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.download_rounded, color: AppColors.adminPrimary, size: 20),
+          ),
         ],
       ),
     );

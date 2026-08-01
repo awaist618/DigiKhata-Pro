@@ -5,7 +5,7 @@ import 'package:khataplus/core/theme/app_colors.dart';
 import 'package:khataplus/core/services/supabase_service.dart';
 import 'package:khataplus/features/auth/presentation/register/widgets/otp_input_field.dart';
 import 'package:khataplus/core/utils/navigation_utils.dart';
-import 'update_password_screen.dart';
+import 'package:khataplus/features/auth/presentation/reset_password/reset_password_screen.dart';
 
 class PhoneResetVerificationScreen extends ConsumerStatefulWidget {
   final String phoneNumber;
@@ -29,7 +29,7 @@ class _PhoneResetVerificationScreenState extends ConsumerState<PhoneResetVerific
 
       if (mounted) {
         setState(() => _isLoading = false);
-        NavigationUtils.pushReplacement(context, const UpdatePasswordScreen());
+        NavigationUtils.pushReplacement(context, const ResetPasswordScreen());
       }
     } catch (e) {
       if (mounted) {

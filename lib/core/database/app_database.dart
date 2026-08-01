@@ -109,12 +109,12 @@ class LinkedBusinesses extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [Businesses, Customers, Suppliers, Transactions, SyncQueue, LinkedBusinesses, LocalNotifications])
+@DriftDatabase(tables: [Businesses, Customers, Suppliers, Transactions, SyncQueue, LinkedBusinesses, LocalNotifications, TransactionTags])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -124,14 +124,39 @@ class AppDatabase extends _$AppDatabase {
       },
       onUpgrade: (m, from, to) async {
         if (from < 2) {
-          // Add LocalNotifications table if updating from version 1
           await m.createTable(localNotifications);
+        }
+        if (from < 3) {
+          await customStatement('CREATE TABLE IF NOT EXISTS transaction_tags (id INTEGER PRIMARY KEY AUTOINCREMENT, business_id TEXT NOT NULL, name TEXT NOT NULL, color TEXT)');
         }
       },
     );
   }
 
-  // Sync logic helpers will be added here
+  // Transaction Tags Helpers
+  Future<List<dynamic>> getTags(String businessId) async {
+    // Use raw query to avoid dependency on generated code during build phase
+    final results = await customSelect(
+      'SELECT * FROM transaction_tags WHERE business_id = ?',
+      variables: [Variable.withString(businessId)],
+    ).get();
+    return results;
+  }
+
+  Future<void> addTagRaw(String businessId, String name, String? color) async {
+    await customStatement(
+      'INSERT INTO transaction_tags (business_id, name, color) VALUES (?, ?, ?)',
+      [businessId, name, color],
+    );
+  }
+
+  Future<bool> deleteTag(int id) async {
+    final count = await customUpdate(
+      'DELETE FROM transaction_tags WHERE id = ?',
+      variables: [Variable.withInt(id)],
+    );
+    return count > 0;
+  }
 }
 
 LazyDatabase _openConnection() {

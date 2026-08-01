@@ -37,10 +37,17 @@ class SecurityNotifier extends StateNotifier<SecurityState> {
   Future<void> _loadSettings() async {
     final pin = await _storage.read(key: 'user_pin');
     final bio = await _storage.read(key: 'biometric_enabled');
+    final autoLogout = await _storage.read(key: 'auto_logout_enabled');
     state = state.copyWith(
       isPinEnabled: pin != null,
       isBiometricEnabled: bio == 'true',
+      isAutoLogoutEnabled: autoLogout != 'false', // Default to true
     );
+  }
+
+  Future<void> toggleAutoLogout(bool enable) async {
+    await _storage.write(key: 'auto_logout_enabled', value: enable.toString());
+    state = state.copyWith(isAutoLogoutEnabled: enable);
   }
 
   Future<void> setPin(String pin) async {

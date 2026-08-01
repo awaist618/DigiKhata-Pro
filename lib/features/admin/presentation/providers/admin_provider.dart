@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/models/admin_stats.dart';
-import '../../data/repositories/admin_repository.dart';
-import '../../../../core/services/supabase_service.dart';
-import '../../../profile/data/models/user_model.dart';
+import 'package:khataplus/features/admin/data/models/admin_stats.dart';
+import 'package:khataplus/features/admin/data/repositories/admin_repository.dart';
+import 'package:khataplus/core/services/supabase_service.dart';
+import 'package:khataplus/features/profile/data/models/user_model.dart';
 
 final adminRepositoryProvider = Provider<AdminRepository>((ref) {
   final client = ref.watch(supabaseServiceProvider).client;
@@ -19,6 +19,10 @@ final adminUsersProvider = FutureProvider<List<UserModel>>((ref) async {
 
 final adminBusinessesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   return await ref.watch(adminRepositoryProvider).getBusinesses();
+});
+
+final bannersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  return await ref.watch(adminRepositoryProvider).getBanners();
 });
 
 class AdminActionsNotifier extends StateNotifier<AsyncValue<void>> {

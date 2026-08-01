@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
 import 'package:khataplus/core/providers/settings_provider.dart';
 import 'security_settings_screen.dart';
+import 'backup_management_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -45,6 +46,15 @@ class SettingsScreen extends ConsumerWidget {
             'PIN, Biometrics',
             Icons.security_outlined,
             () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SecuritySettingsScreen())),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionTitle('Data & Backup'),
+          _buildSettingTile(
+            context,
+            'Manage Backups',
+            'Local JSON backups',
+            Icons.backup_outlined,
+            () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BackupManagementScreen())),
           ),
           const SizedBox(height: 24),
           _buildSectionTitle('About'),
@@ -127,7 +137,7 @@ class SettingsScreen extends ConsumerWidget {
           decoration: BoxDecoration(color: AppColors.primaryBlue, borderRadius: BorderRadius.circular(12)),
           child: const Icon(Icons.account_balance_wallet, color: Colors.white, size: 32),
         ),
-        applicationLegalese: '© 2026 Zenvyro Labs. All rights reserved.',
+        applicationLegalese: '© 2026 Zenvyro Labs x Awais. All rights reserved.',
         children: [
           const SizedBox(height: 16),
           Text(

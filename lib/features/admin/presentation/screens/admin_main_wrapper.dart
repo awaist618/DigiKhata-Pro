@@ -43,7 +43,7 @@ class AdminMainWrapper extends ConsumerWidget {
           ],
         ),
         child: NavigationBar(
-          height: 70,
+          height: 80,
           elevation: 0,
           selectedIndex: selectedIndex,
           onDestinationSelected: (index) => ref.read(adminNavIndexProvider.notifier).state = index,
@@ -51,11 +51,11 @@ class AdminMainWrapper extends ConsumerWidget {
           indicatorColor: AppColors.adminPrimary.withValues(alpha: 0.1),
           labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
           destinations: [
-            _buildNavDest(Icons.dashboard_rounded, 'Dashboard', 0, selectedIndex, isDarkMode),
-            _buildNavDest(Icons.people_alt_rounded, 'Users', 1, selectedIndex, isDarkMode),
-            _buildNavDest(Icons.business_center_rounded, 'Businesses', 2, selectedIndex, isDarkMode),
-            _buildNavDest(Icons.analytics_rounded, 'Reports', 3, selectedIndex, isDarkMode),
-            _buildNavDest(Icons.tune_rounded, 'Settings', 4, selectedIndex, isDarkMode),
+            _buildNavDest(Icons.grid_view_rounded, 'Dashboard', 0, selectedIndex, isDarkMode),
+            _buildNavDest(Icons.group_rounded, 'Users', 1, selectedIndex, isDarkMode),
+            _buildNavDest(Icons.storefront_rounded, 'Directory', 2, selectedIndex, isDarkMode),
+            _buildNavDest(Icons.bar_chart_rounded, 'Reports', 3, selectedIndex, isDarkMode),
+            _buildNavDest(Icons.settings_suggest_rounded, 'Settings', 4, selectedIndex, isDarkMode),
           ],
         ),
       ),
@@ -72,6 +72,5 @@ class AdminMainWrapper extends ConsumerWidget {
       ),
       label: label,
     );
-  }
   }
 }

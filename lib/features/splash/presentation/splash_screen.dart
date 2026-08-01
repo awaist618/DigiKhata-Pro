@@ -40,6 +40,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         final authenticated = await ref.read(securityProvider.notifier).authenticate();
         if (authenticated && mounted) {
           final profile = await ref.read(profileRepositoryProvider).getProfile(session.user.id);
+          if (profile?.isBlocked == true) {
+            await ref.read(supabaseServiceProvider).signOut();
+            NavigationUtils.pushReplacement(context, const LoginScreen());
+            return;
+          }
           if (profile?.role == 'admin') {
             NavigationUtils.pushReplacement(context, const AdminMainWrapper());
           } else {
@@ -50,6 +55,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         }
       } else {
         final profile = await ref.read(profileRepositoryProvider).getProfile(session.user.id);
+        if (profile?.isBlocked == true) {
+          await ref.read(supabaseServiceProvider).signOut();
+          NavigationUtils.pushReplacement(context, const LoginScreen());
+          return;
+        }
         if (profile?.role == 'admin') {
           NavigationUtils.pushReplacement(context, const AdminMainWrapper());
         } else {
@@ -87,7 +97,29 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const AppLogo(size: 240),
+                  Container(
+                    width: 240,
+                    height: 240,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(48),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(48),
+                      child: Image.asset(
+                        'assets/images/SplashScreen Logo.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => 
+                          const Icon(Icons.account_balance_wallet, size: 120, color: Colors.white),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   Text(
                     'DigiKhata Pro',
@@ -113,25 +145,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                 child: SafeArea(
                   child: Column(
                     children: [
-                      RichText(
-                        text: TextSpan(
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.amberGold,
-                            letterSpacing: 2.0,
-                          ),
-                          children: [
-                            const TextSpan(text: 'ZENVYRO LABS '),
-                            const TextSpan(
-                              text: 'X',
-                              style: TextStyle(
-                                color: AppColors.electricBlue,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const TextSpan(text: ' AWAIS'),
-                          ],
+                      Text(
+                        'ZENVYRO LABS',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.amberGold,
+                          letterSpacing: 2.0,
                         ),
                       ),
                       const SizedBox(height: 4),
