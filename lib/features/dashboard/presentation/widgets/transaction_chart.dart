@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
 import 'package:khataplus/features/analytics/presentation/providers/analytics_provider.dart';
 
+import 'package:easy_localization/easy_localization.dart';
+
 class TransactionChart extends ConsumerWidget {
   const TransactionChart({super.key});
 
@@ -46,7 +48,7 @@ class TransactionChart extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Revenue Trend',
+                'revenue_trend'.tr(),
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -60,7 +62,7 @@ class TransactionChart extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  'Last 7 Days',
+                  'last_7_days'.tr(),
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,

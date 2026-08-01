@@ -55,6 +55,7 @@ class CustomerModel {
   }
 
   CustomerModel copyWith({
+    String? id,
     String? name,
     String? phone,
     String? email,
@@ -65,7 +66,7 @@ class CustomerModel {
     bool? isFavorite,
   }) {
     return CustomerModel(
-      id: id,
+      id: id ?? this.id,
       businessId: businessId,
       name: name ?? this.name,
       phone: phone ?? this.phone,

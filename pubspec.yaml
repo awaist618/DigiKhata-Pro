@@ -53,14 +53,21 @@ dependencies:
   image_picker: ^1.2.3
   share_plus: ^13.3.0
   mobile_scanner: ^7.4.0
+  firebase_core: ^3.11.0
+  firebase_messaging: ^15.2.10
   connectivity_plus: ^7.3.1
   path_provider: ^2.1.6
   path: ^1.9.1
   local_auth: ^2.3.0
   flutter_secure_storage: ^10.3.1
+  url_launcher: ^6.3.0
+  flutter_contacts: ^1.1.9
+  permission_handler: ^11.3.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  drift_dev: ^2.34.3
+  build_runner: ^2.4.15
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

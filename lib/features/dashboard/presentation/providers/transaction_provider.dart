@@ -5,10 +5,12 @@ import '../../data/repositories/transaction_repository.dart';
 import 'dashboard_provider.dart';
 import 'package:khataplus/features/customer/presentation/providers/customer_provider.dart';
 import 'package:khataplus/features/supplier/presentation/providers/supplier_provider.dart';
+import 'package:khataplus/core/providers/database_provider.dart';
 
 final transactionRepositoryProvider = Provider<TransactionRepository>((ref) {
   final supabase = ref.watch(supabaseServiceProvider);
-  return TransactionRepository(supabase.client);
+  final database = ref.watch(databaseProvider);
+  return TransactionRepository(supabase.client, database);
 });
 
 final transactionActionProvider = Provider<TransactionActionNotifier>((ref) {
@@ -21,6 +23,15 @@ class TransactionActionNotifier {
   final TransactionRepository _repository;
 
   TransactionActionNotifier(this._ref, this._repository);
+
+  Future<void> addTransaction(TransactionModel tx) async {
+    try {
+      await _repository.addTransaction(tx);
+      _refreshAll();
+    } catch (e) {
+      rethrow;
+    }
+  }
 
   Future<void> deleteTransaction(TransactionModel tx) async {
     try {

@@ -51,6 +51,7 @@ class SupplierModel {
   }
 
   SupplierModel copyWith({
+    String? id,
     String? name,
     String? phone,
     String? email,
@@ -60,7 +61,7 @@ class SupplierModel {
     double? balance,
   }) {
     return SupplierModel(
-      id: id,
+      id: id ?? this.id,
       businessId: businessId,
       name: name ?? this.name,
       phone: phone ?? this.phone,

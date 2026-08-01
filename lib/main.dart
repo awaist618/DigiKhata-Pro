@@ -11,9 +11,19 @@ import 'package:easy_localization/easy_localization.dart';
 
 import 'core/providers/settings_provider.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'core/services/notification_service.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
+
+  try {
+    // Initialize Firebase
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint("Firebase: Initialization error: $e");
+  }
 
   try {
     // 1. Load environment variables
@@ -40,10 +50,21 @@ void main() async {
       path: 'assets/translations',
       fallbackLocale: const Locale('en'),
       child: const ProviderScope(
-        child: MyApp(),
+        child: AppStartupWidget(),
       ),
     ),
   );
+}
+
+class AppStartupWidget extends ConsumerWidget {
+  const AppStartupWidget({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Initialize Notification Service
+    ref.read(notificationServiceProvider).initialize();
+    return const MyApp();
+  }
 }
 
 class MyApp extends ConsumerWidget {

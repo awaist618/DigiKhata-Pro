@@ -9,16 +9,19 @@ import 'package:khataplus/core/services/supabase_service.dart';
 import 'package:khataplus/features/business/presentation/providers/business_provider.dart';
 import 'package:khataplus/features/qr/presentation/widgets/customer_qr_dialog.dart';
 import 'package:khataplus/core/services/export_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PartyLedgerScreen extends ConsumerStatefulWidget {
   final String partyId;
   final String partyName;
+  final String? partyPhone;
   final bool isCustomer;
 
   const PartyLedgerScreen({
     super.key,
     required this.partyId,
     required this.partyName,
+    this.partyPhone,
     required this.isCustomer,
   });
 
@@ -96,6 +99,36 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
     );
   }
 
+  void _sendReminder(double balance) async {
+    final settings = ref.read(settingsProvider);
+    final businessName = ref.read(businessNameProvider);
+    final String message;
+    
+    if (balance < 0) {
+      message = 'Dear ${widget.partyName}, a friendly reminder that you have an outstanding balance of ${settings.currency} ${balance.abs().toStringAsFixed(0)} with $businessName. Please clear it at your earliest convenience.';
+    } else {
+      message = 'Dear ${widget.partyName}, your account balance with $businessName is ${settings.currency} ${balance.toStringAsFixed(0)}. Thank you for your business!';
+    }
+
+    final Uri smsUri = Uri(
+      scheme: 'sms',
+      path: widget.partyPhone ?? '',
+      queryParameters: <String, String>{
+        'body': message,
+      },
+    );
+
+    if (await canLaunchUrl(smsUri)) {
+      await launchUrl(smsUri);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not launch SMS app')),
+        );
+      }
+    }
+  }
+
   Widget _buildExportOption(String label, IconData icon, Color color, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
@@ -140,6 +173,19 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
               },
               tooltip: 'Customer QR',
             ),
+          IconButton(
+            icon: const Icon(Icons.notifications_active_outlined, color: AppColors.primaryBlue),
+            onPressed: () async {
+              final transactions = await _transactionsFuture;
+              double currentBalance = 0;
+              for (var tx in transactions) {
+                final factor = tx.type == TransactionType.credit ? 1 : -1;
+                currentBalance += tx.amount * factor;
+              }
+              _sendReminder(currentBalance);
+            },
+            tooltip: 'Send Reminder',
+          ),
           IconButton(
             icon: const Icon(Icons.file_download_outlined, color: AppColors.primaryBlue),
             onPressed: () async {

@@ -9,20 +9,28 @@ import 'package:khataplus/features/analytics/presentation/screens/analytics_scre
 import 'package:khataplus/core/services/export_service.dart';
 import 'package:khataplus/core/providers/settings_provider.dart';
 
+import 'package:easy_localization/easy_localization.dart';
+
 class ReportsScreen extends ConsumerWidget {
   const ReportsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          'Business Reports',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          'business_reports'.tr(),
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            color: isDarkMode ? Colors.white : AppColors.textPrimary,
+          ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        iconTheme: IconThemeData(color: isDarkMode ? Colors.white : AppColors.textPrimary),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -30,46 +38,51 @@ class ReportsScreen extends ConsumerWidget {
           children: [
             _buildReportCard(
               context,
-              'Business Analytics',
-              'Revenue, Profit and Cash Flow charts',
+              'business_analytics'.tr(),
+              'revenue_profit_charts'.tr(),
               Icons.analytics,
               AppColors.primaryBlue,
+              isDarkMode,
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnalyticsScreen())),
             ),
             const SizedBox(height: 16),
             _buildReportCard(
               context,
-              'Daily Summary',
-              'Detailed view of today\'s activities',
+              'daily_summary'.tr(),
+              'detailed_view_today'.tr(),
               Icons.today,
               AppColors.headerMiddleBlue,
+              isDarkMode,
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DetailedReportScreen(reportType: 'Daily Report'))),
             ),
             const SizedBox(height: 16),
             _buildReportCard(
               context,
-              'Income & Expense',
-              'Analysis of Cash In vs Cash Out',
+              'income_expense'.tr(),
+              'analysis_cash_flow'.tr(),
               Icons.account_balance_wallet,
               AppColors.success,
+              isDarkMode,
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DetailedReportScreen(reportType: 'Income & Expense Report'))),
             ),
             const SizedBox(height: 16),
             _buildReportCard(
               context,
-              'Customer Balances',
-              'Summary of all outstanding dues',
+              'customer_balances'.tr(),
+              'summary_outstanding'.tr(),
               Icons.people,
               AppColors.amberGold,
+              isDarkMode,
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DetailedReportScreen(reportType: 'Customer Report'))),
             ),
             const SizedBox(height: 16),
             _buildReportCard(
               context,
-              'PDF Statements',
-              'Generate monthly/yearly statements',
+              'pdf_statements'.tr(),
+              'generate_statements'.tr(),
               Icons.picture_as_pdf,
               AppColors.danger,
+              isDarkMode,
               onDownload: () => _showExportDialog(context, ref, 'Full History'),
             ),
           ],
@@ -83,7 +96,8 @@ class ReportsScreen extends ConsumerWidget {
     String title,
     String subtitle,
     IconData icon,
-    Color color, {
+    Color color,
+    bool isDarkMode, {
     VoidCallback? onTap,
     VoidCallback? onDownload,
   }) {
@@ -93,11 +107,11 @@ class ReportsScreen extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDarkMode ? AppColors.logoNavyBottom : Colors.white,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: Colors.black.withValues(alpha: isDarkMode ? 0.2 : 0.03),
               blurRadius: 15,
               offset: const Offset(0, 6),
             ),
@@ -123,7 +137,7 @@ class ReportsScreen extends ConsumerWidget {
                     style: GoogleFonts.poppins(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
-                      color: AppColors.textPrimary,
+                      color: isDarkMode ? Colors.white : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -131,7 +145,7 @@ class ReportsScreen extends ConsumerWidget {
                     subtitle,
                     style: GoogleFonts.inter(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: isDarkMode ? Colors.white70 : AppColors.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -139,16 +153,16 @@ class ReportsScreen extends ConsumerWidget {
               ),
             ),
             if (onDownload != null)
-              _buildDownloadButton(onDownload)
+              _buildDownloadButton(onDownload, isDarkMode)
             else
-              const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+              Icon(Icons.chevron_right_rounded, color: isDarkMode ? Colors.white54 : AppColors.textSecondary),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDownloadButton(VoidCallback onDownload) {
+  Widget _buildDownloadButton(VoidCallback onDownload, bool isDarkMode) {
     return InkWell(
       onTap: onDownload,
       child: Container(
@@ -157,7 +171,7 @@ class ReportsScreen extends ConsumerWidget {
           color: AppColors.primaryBlue.withValues(alpha: 0.08),
           shape: BoxShape.circle,
         ),
-        child: const Icon(Icons.file_download_outlined, color: AppColors.primaryBlue, size: 20),
+        child: Icon(Icons.file_download_outlined, color: AppColors.primaryBlue, size: 20),
       ),
     );
   }

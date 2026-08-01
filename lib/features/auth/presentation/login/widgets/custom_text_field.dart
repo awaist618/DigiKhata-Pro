@@ -9,6 +9,7 @@ class CustomTextField extends StatefulWidget {
   final TextEditingController? controller;
   final String? Function(String?)? validator;
   final TextInputType? keyboardType;
+  final Widget? suffix;
 
   const CustomTextField({
     super.key,
@@ -18,6 +19,7 @@ class CustomTextField extends StatefulWidget {
     this.controller,
     this.validator,
     this.keyboardType,
+    this.suffix,
   });
 
   @override
@@ -86,7 +88,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                   widget.prefixIcon,
                   color: AppColors.primaryBlue,
                 ),
-                suffixIcon: widget.isPassword
+                suffixIcon: widget.suffix ?? (widget.isPassword
                     ? IconButton(
                         icon: Icon(
                           _obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
@@ -98,7 +100,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                           });
                         },
                       )
-                    : null,
+                    : null),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(vertical: 18),
                 errorStyle: const TextStyle(height: 0), 

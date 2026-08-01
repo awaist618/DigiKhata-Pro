@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:khataplus/core/providers/settings_provider.dart';
 import 'package:khataplus/features/dashboard/presentation/screens/transaction_details_screen.dart';
 
+import 'package:easy_localization/easy_localization.dart';
+
 class RecentTransactions extends ConsumerWidget {
   final List<TransactionModel> transactions;
   const RecentTransactions({super.key, required this.transactions});
@@ -22,7 +24,7 @@ class RecentTransactions extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Recent Transactions',
+              'recent_transactions'.tr(),
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -32,7 +34,7 @@ class RecentTransactions extends ConsumerWidget {
             TextButton(
               onPressed: () {}, // Handled by View All logic usually
               child: Text(
-                'View All',
+                'view_all'.tr(),
                 style: GoogleFonts.inter(
                   color: AppColors.primaryBlue,
                   fontWeight: FontWeight.w600,
@@ -43,9 +45,9 @@ class RecentTransactions extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         if (transactions.isEmpty)
-          const Center(child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Text('No transactions yet'),
+          Center(child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Text('no_transactions'.tr()),
           ))
         else
           ListView.builder(

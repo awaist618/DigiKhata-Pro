@@ -10,6 +10,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:khataplus/core/providers/settings_provider.dart';
 import 'package:khataplus/features/ledger/presentation/screens/party_ledger_screen.dart';
 
+import 'package:easy_localization/easy_localization.dart';
+
 class CustomerListScreen extends ConsumerStatefulWidget {
   const CustomerListScreen({super.key});
 
@@ -255,7 +257,7 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            customer.balance >= 0 ? 'YOU GET' : 'YOU GIVE',
+                            customer.balance >= 0 ? 'you_get'.tr() : 'you_give'.tr(),
                             style: GoogleFonts.inter(
                               fontSize: 9,
                               fontWeight: FontWeight.bold,
@@ -271,6 +273,7 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
                         PartyLedgerScreen(
                           partyId: customer.id,
                           partyName: customer.name,
+                          partyPhone: customer.phone,
                           isCustomer: true,
                         ),
                       );

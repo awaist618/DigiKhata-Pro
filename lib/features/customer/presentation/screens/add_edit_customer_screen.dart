@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/custom_text_field.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/primary_button.dart';
@@ -78,6 +80,30 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
     }
   }
 
+  Future<void> _pickContact() async {
+    if (await Permission.contacts.request().isGranted) {
+      final contact = await FlutterContacts.openExternalPick();
+      if (contact != null) {
+        // Fetch full details since pick() might return partial data
+        final fullContact = await FlutterContacts.getContact(contact.id);
+        if (fullContact != null && fullContact.phones.isNotEmpty) {
+          setState(() {
+            _nameController.text = fullContact.displayName;
+            // Clean phone number (remove spaces, etc)
+            String phone = fullContact.phones.first.number.replaceAll(RegExp(r'\s+'), '');
+            _phoneController.text = phone;
+          });
+        }
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Contacts permission denied')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -109,6 +135,11 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
                 validator: (val) => val == null || val.isEmpty ? 'Field required' : null,
+                suffix: IconButton(
+                  icon: const Icon(Icons.contact_phone_outlined, color: AppColors.primaryBlue),
+                  onPressed: _pickContact,
+                  tooltip: 'Pick from contacts',
+                ),
               ),
               const SizedBox(height: 20),
               CustomTextField(

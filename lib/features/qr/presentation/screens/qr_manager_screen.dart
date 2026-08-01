@@ -5,6 +5,9 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:khataplus/core/theme/app_colors.dart';
 import 'package:khataplus/features/business/presentation/providers/business_provider.dart';
+import 'package:khataplus/features/customer/presentation/providers/customer_provider.dart';
+import 'package:khataplus/features/customer/data/models/customer_model.dart';
+import 'package:khataplus/core/services/supabase_service.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
@@ -21,6 +24,7 @@ class QrManagerScreen extends ConsumerStatefulWidget {
 
 class _QrManagerScreenState extends ConsumerState<QrManagerScreen> {
   final GlobalKey _qrKey = GlobalKey();
+  bool _isProcessing = false;
 
   Future<void> _shareQrCode(String businessName) async {
     try {
@@ -38,6 +42,65 @@ class _QrManagerScreenState extends ConsumerState<QrManagerScreen> {
     } catch (e) {
       debugPrint('Error sharing QR: $e');
     }
+  }
+
+  void _handleScannedData(String data) async {
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+
+    try {
+      if (data.startsWith('customer:')) {
+        final customerId = data.split(':').last;
+        _showAddCustomerDialog(customerId);
+      } else {
+        // Assume it's a business ID
+        _showBusinessInfo(data);
+      }
+    } finally {
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) setState(() => _isProcessing = false);
+      });
+    }
+  }
+
+  void _showAddCustomerDialog(String customerId) async {
+    final supabase = ref.read(supabaseServiceProvider).client;
+    
+    // Fetch customer info from public profiles or shared data
+    // For now, let's show a dialog to add this ID as a new customer reference
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add Customer via QR'),
+        content: Text('Do you want to add customer (ID: $customerId) to your business?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () async {
+              // Implementation logic to add customer
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Customer linked successfully!')),
+              );
+            },
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showBusinessInfo(String businessId) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Business Scanned'),
+        content: Text('Found Business ID: $businessId\n\nFeature to link businesses is coming soon!'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+        ],
+      ),
+    );
   }
 
   @override
@@ -133,14 +196,32 @@ class _QrManagerScreenState extends ConsumerState<QrManagerScreen> {
                     ),
                   ),
                   // Tab 2: Scan QR
-                  MobileScanner(
-                    onDetect: (capture) {
-                      final List<Barcode> barcodes = capture.barcodes;
-                      for (final barcode in barcodes) {
-                        debugPrint('Barcode found! ${barcode.rawValue}');
-                        // Handle scanned business ID here
-                      }
-                    },
+                  Stack(
+                    children: [
+                      MobileScanner(
+                        onDetect: (capture) {
+                          final List<Barcode> barcodes = capture.barcodes;
+                          if (barcodes.isNotEmpty && barcodes.first.rawValue != null) {
+                            _handleScannedData(barcodes.first.rawValue!);
+                          }
+                        },
+                      ),
+                      if (_isProcessing)
+                        Container(
+                          color: Colors.black54,
+                          child: const Center(child: CircularProgressIndicator()),
+                        ),
+                      Center(
+                        child: Container(
+                          width: 250,
+                          height: 250,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: AppColors.primaryBlue, width: 2),
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

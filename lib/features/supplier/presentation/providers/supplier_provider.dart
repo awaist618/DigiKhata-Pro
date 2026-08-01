@@ -1,12 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:khataplus/core/services/supabase_service.dart';
 import 'package:khataplus/features/business/presentation/providers/business_provider.dart';
+import 'package:khataplus/core/providers/database_provider.dart';
 import '../../data/models/supplier_model.dart';
 import '../../data/repositories/supplier_repository.dart';
 
 final supplierRepositoryProvider = Provider<SupplierRepository>((ref) {
   final supabase = ref.watch(supabaseServiceProvider);
-  return SupplierRepository(supabase.client);
+  final database = ref.watch(databaseProvider);
+  return SupplierRepository(supabase.client, database);
 });
 
 final suppliersProvider = StateNotifierProvider<SupplierNotifier, AsyncValue<List<SupplierModel>>>((ref) {

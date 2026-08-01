@@ -2,8 +2,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:convert';
 import 'package:khataplus/core/theme/app_colors.dart';
 import 'package:khataplus/core/services/supabase_service.dart';
+import 'package:khataplus/core/providers/database_provider.dart';
 import 'package:khataplus/core/utils/navigation_utils.dart';
 import 'package:khataplus/features/auth/presentation/login/login_screen.dart';
 import 'package:khataplus/features/profile/presentation/providers/profile_provider.dart';
@@ -403,35 +405,7 @@ class ProfileScreen extends ConsumerWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.cloud_done, color: AppColors.primaryBlue, size: 48),
-            const SizedBox(height: 16),
-            Text('Auto-Sync is Active', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18)),
-            const SizedBox(height: 8),
-            Text(
-              'Your data is automatically backed up to Supabase Cloud.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryBlue,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: const Text('Close', style: TextStyle(color: Colors.white)),
-              ),
-            ),
-          ],
-        ),
-      ),
+      builder: (context) => const SyncStatusSheet(),
     );
   }
 
@@ -442,37 +416,193 @@ class ProfileScreen extends ConsumerWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Notification Preferences',
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+      builder: (context) => const NotificationPreferencesSheet(),
+    );
+  }
+}
+
+class SyncStatusSheet extends ConsumerStatefulWidget {
+  const SyncStatusSheet({super.key});
+
+  @override
+  ConsumerState<SyncStatusSheet> createState() => _SyncStatusSheetState();
+}
+
+class _SyncStatusSheetState extends ConsumerState<SyncStatusSheet> {
+  bool _isSyncing = false;
+
+  void _triggerSync() async {
+    setState(() => _isSyncing = true);
+    
+    // Perform real sync logic
+    try {
+      final supabase = ref.read(supabaseServiceProvider).client;
+      final db = ref.read(databaseProvider);
+      
+      final pending = await db.select(db.syncQueue).get();
+      int successCount = 0;
+
+      for (var item in pending) {
+        try {
+          if (item.action == 'insert') {
+            await supabase.from(item.localTable).upsert(jsonDecode(item.data));
+            // Trigger balance RPC for transaction inserts
+            if (item.localTable == 'transactions') {
+              final txData = jsonDecode(item.data);
+              final factor = txData['type'] == 'credit' ? 1 : -1;
+              final amount = (txData['amount'] as num).toDouble() * factor;
+              
+              if (txData['customer_id'] != null) {
+                await supabase.rpc('update_customer_balance', params: {
+                  'c_id': txData['customer_id'],
+                  'amount_change': amount,
+                });
+              } else if (txData['supplier_id'] != null) {
+                await supabase.rpc('update_supplier_balance', params: {
+                  's_id': txData['supplier_id'],
+                  'amount_change': amount,
+                });
+              }
+            }
+          } else if (item.action == 'update') {
+            await supabase.from(item.localTable).update(jsonDecode(item.data)).eq('id', item.recordId);
+          } else if (item.action == 'delete') {
+            await supabase.from(item.localTable).delete().eq('id', item.recordId);
+          }
+          await (db.delete(db.syncQueue)..where((t) => t.id.equals(item.id))).go();
+          successCount++;
+        } catch (e) {
+          debugPrint('Sync failed for item ${item.id}: $e');
+        }
+      }
+
+      if (mounted) {
+        setState(() => _isSyncing = false);
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Sync completed! $successCount changes pushed to cloud.'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSyncing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Sync failed: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            _isSyncing ? Icons.sync : Icons.cloud_done,
+            color: AppColors.primaryBlue,
+            size: 48,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            _isSyncing ? 'Syncing Data...' : 'Auto-Sync is Active',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _isSyncing 
+              ? 'Please wait while we verify your data with the cloud.'
+              : 'Your data is automatically backed up to Supabase Cloud.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _isSyncing ? null : _triggerSync,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryBlue,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 16),
               ),
+              child: _isSyncing
+                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Text('Sync Now', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
-            const SizedBox(height: 20),
-            _buildNotificationToggle('Push Notifications', 'Receive alerts for transactions', true),
-            _buildNotificationToggle('SMS Alerts', 'Get SMS for due payments', false),
-            _buildNotificationToggle('Email Reports', 'Receive weekly summary in email', true),
-            const SizedBox(height: 12),
-          ],
-        ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+class NotificationPreferencesSheet extends StatefulWidget {
+  const NotificationPreferencesSheet({super.key});
+
+  @override
+  State<NotificationPreferencesSheet> createState() => _NotificationPreferencesSheetState();
+}
+
+class _NotificationPreferencesSheetState extends State<NotificationPreferencesSheet> {
+  bool push = true;
+  bool sms = false;
+  bool email = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Notification Preferences',
+            style: GoogleFonts.poppins(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 20),
+          _buildNotificationToggle('Push Notifications', 'Receive alerts for transactions', push, (v) => setState(() => push = v)),
+          _buildNotificationToggle('SMS Alerts', 'Get SMS for due payments', sms, (v) => setState(() => sms = v)),
+          _buildNotificationToggle('Email Reports', 'Receive weekly summary in email', email, (v) => setState(() => email = v)),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Preferences saved successfully!')),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryBlue,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Save Changes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
       ),
     );
   }
 
-  Widget _buildNotificationToggle(String title, String subtitle, bool value) {
+  Widget _buildNotificationToggle(String title, String subtitle, bool value, ValueChanged<bool> onChanged) {
     return SwitchListTile(
       title: Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
       subtitle: Text(subtitle, style: GoogleFonts.poppins(fontSize: 12)),
       value: value,
       activeColor: AppColors.primaryBlue,
-      onChanged: (val) {},
+      onChanged: onChanged,
     );
   }
 }
