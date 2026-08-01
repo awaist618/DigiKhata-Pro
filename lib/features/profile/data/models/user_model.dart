@@ -4,6 +4,8 @@ class UserModel {
   final String? fullName;
   final String? phoneNumber;
   final String? avatarUrl;
+  final String role;
+  final bool isBlocked;
   final DateTime? createdAt;
 
   UserModel({
@@ -12,6 +14,8 @@ class UserModel {
     this.fullName,
     this.phoneNumber,
     this.avatarUrl,
+    this.role = 'user',
+    this.isBlocked = false,
     this.createdAt,
   });
 
@@ -22,6 +26,8 @@ class UserModel {
       fullName: json['full_name'] as String?,
       phoneNumber: json['phone_number'] as String?,
       avatarUrl: json['avatar_url'] as String?,
+      role: json['role'] as String? ?? 'user',
+      isBlocked: json['is_blocked'] as bool? ?? false,
       createdAt: json['created_at'] != null 
           ? DateTime.parse(json['created_at'] as String) 
           : null,
@@ -35,6 +41,8 @@ class UserModel {
       'full_name': fullName,
       'phone_number': phoneNumber,
       'avatar_url': avatarUrl,
+      'role': role,
+      'is_blocked': isBlocked,
       'created_at': createdAt?.toIso8601String(),
     };
   }
@@ -45,6 +53,8 @@ class UserModel {
     String? fullName,
     String? phoneNumber,
     String? avatarUrl,
+    String? role,
+    bool? isBlocked,
     DateTime? createdAt,
   }) {
     return UserModel(
@@ -53,6 +63,8 @@ class UserModel {
       fullName: fullName ?? this.fullName,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      role: role ?? this.role,
+      isBlocked: isBlocked ?? this.isBlocked,
       createdAt: createdAt ?? this.createdAt,
     );
   }

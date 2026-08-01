@@ -23,6 +23,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../register/widgets/google_button.dart';
 
+import 'package:khataplus/features/admin/presentation/screens/admin_main_wrapper.dart';
+import 'package:khataplus/features/profile/presentation/providers/profile_provider.dart';
+
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -102,17 +105,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
       final supabaseService = ref.read(supabaseServiceProvider);
       await supabaseService.signIn(email: email, password: password);
       
+      // Fetch profile to check role
+      final profile = await ref.read(profileRepositoryProvider).getProfile(supabaseService.currentUser!.id);
+      
       if (mounted) {
-        // Successful manual login: Handle Biometric Enrollment
+        // Handle Biometric Enrollment
         final security = ref.read(securityProvider);
         if (security.isBiometricEnabled) {
-          // Update stored credentials if they changed
           await ref.read(securityProvider.notifier).saveCredentials(email, password);
         } else {
           _promptBiometricEnrollment(email, password);
         }
 
-        NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
+        if (profile?.role == 'admin') {
+          NavigationUtils.pushReplacement(context, const AdminMainWrapper());
+        } else {
+          NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
+        }
       }
     } on AuthException catch (e) {
       if (mounted) {
@@ -150,8 +159,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
     try {
       final supabaseService = ref.read(supabaseServiceProvider);
       await supabaseService.signInWithGoogle();
+
+      final profile = await ref.read(profileRepositoryProvider).getProfile(supabaseService.currentUser!.id);
+
       if (mounted) {
-        NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
+        if (profile?.role == 'admin') {
+          NavigationUtils.pushReplacement(context, const AdminMainWrapper());
+        } else {
+          NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -187,8 +203,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
           email: credentials['email']!,
           password: credentials['password']!,
         );
+
+        final profile = await ref.read(profileRepositoryProvider).getProfile(supabaseService.currentUser!.id);
+
         if (mounted) {
-          NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
+          if (profile?.role == 'admin') {
+            NavigationUtils.pushReplacement(context, const AdminMainWrapper());
+          } else {
+            NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
+          }
         }
       } catch (e) {
         if (mounted) {

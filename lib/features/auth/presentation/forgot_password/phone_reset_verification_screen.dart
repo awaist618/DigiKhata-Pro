@@ -29,15 +29,17 @@ class _PhoneResetVerificationScreenState extends ConsumerState<PhoneResetVerific
 
       if (mounted) {
         setState(() => _isLoading = false);
-        // Once verified, the user is technically logged in via Supabase OTP path
-        // Navigate to update password screen
         NavigationUtils.pushReplacement(context, const UpdatePasswordScreen());
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Verification Failed: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('Verification Failed: ${e.toString()}'), 
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     }
@@ -45,30 +47,63 @@ class _PhoneResetVerificationScreenState extends ConsumerState<PhoneResetVerific
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Verify Phone')),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
+      backgroundColor: isDarkMode ? AppColors.backgroundDark : AppColors.background,
+      appBar: AppBar(
+        title: Text('Verify Phone', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: isDarkMode ? Colors.white : AppColors.textPrimary),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(28.0),
         child: Column(
           children: [
             const SizedBox(height: 20),
+            Icon(Icons.vibration_rounded, size: 100, color: AppColors.primaryBlue),
+            const SizedBox(height: 32),
             Text(
               'Verification Code',
-              style: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.bold),
+              style: GoogleFonts.poppins(
+                fontSize: 28, 
+                fontWeight: FontWeight.bold,
+                color: isDarkMode ? Colors.white : AppColors.textPrimary,
+              ),
             ),
             const SizedBox(height: 12),
-            Text(
-              'A code has been sent to ${widget.phoneNumber}',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(color: AppColors.textSecondary),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                'A 6-digit code has been sent to ${widget.phoneNumber}. Enter it below to proceed.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  color: isDarkMode ? Colors.white70 : AppColors.textSecondary,
+                  height: 1.5,
+                ),
+              ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 48),
             OTPInputField(
               length: 6,
               onCompleted: _handleVerify,
             ),
-            const SizedBox(height: 40),
-            if (_isLoading) const CircularProgressIndicator(),
+            const SizedBox(height: 48),
+            if (_isLoading) 
+              const CircularProgressIndicator(color: AppColors.primaryBlue)
+            else
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'Change Phone Number',
+                  style: GoogleFonts.inter(
+                    color: AppColors.primaryBlue,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
           ],
         ),
       ),

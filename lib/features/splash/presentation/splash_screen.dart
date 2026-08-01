@@ -11,6 +11,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:khataplus/core/providers/security_provider.dart';
 
+import 'package:khataplus/features/admin/presentation/screens/admin_main_wrapper.dart';
+import 'package:khataplus/features/profile/presentation/providers/profile_provider.dart';
+
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
@@ -36,13 +39,22 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       if (security.isBiometricEnabled) {
         final authenticated = await ref.read(securityProvider.notifier).authenticate();
         if (authenticated && mounted) {
-          NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
+          final profile = await ref.read(profileRepositoryProvider).getProfile(session.user.id);
+          if (profile?.role == 'admin') {
+            NavigationUtils.pushReplacement(context, const AdminMainWrapper());
+          } else {
+            NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
+          }
         } else if (mounted) {
-          // If biometric fails, go to login for re-authentication
           NavigationUtils.pushReplacement(context, const LoginScreen());
         }
       } else {
-        NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
+        final profile = await ref.read(profileRepositoryProvider).getProfile(session.user.id);
+        if (profile?.role == 'admin') {
+          NavigationUtils.pushReplacement(context, const AdminMainWrapper());
+        } else {
+          NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
+        }
       }
     } else {
       NavigationUtils.pushReplacement(context, const LoginScreen());

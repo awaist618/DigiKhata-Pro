@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../database/app_database.dart';
@@ -20,8 +22,34 @@ class SyncService {
           final data = jsonDecode(item.data);
           
           if (item.action == 'insert' || item.action == 'update') {
-            // Remove local-only fields that don't exist in Supabase schema to prevent PGRST204
             final Map<String, dynamic> cloudData = Map.from(data);
+            
+            // Handle Offline Image Upload
+            if (item.localTable == 'transactions' && cloudData['local_image_path'] != null && cloudData['image_url'] == null) {
+              final File file = File(cloudData['local_image_path']);
+              if (await file.exists()) {
+                try {
+                  final fileName = 'tx_${DateTime.now().millisecondsSinceEpoch}.jpg';
+                  final businessId = cloudData['business_id'];
+                  final path = 'transactions/$businessId/$fileName';
+                  
+                  await _client.storage.from('transactions').upload(path, file);
+                  final publicUrl = _client.storage.from('transactions').getPublicUrl(path);
+                  
+                  // Update cloudData with the new URL
+                  cloudData['image_url'] = publicUrl;
+                  
+                  // Also update local DB so we don't try to upload again
+                  await (_db.update(_db.transactions)..where((t) => t.id.equals(item.recordId)))
+                      .write(TransactionsCompanion(imageUrl: Value(publicUrl)));
+                } catch (storageErr) {
+                  debugPrint('Storage upload failed, will retry: $storageErr');
+                  // We continue with the DB sync even if image fails, it will retry next time
+                }
+              }
+            }
+
+            // Remove local-only fields that don't exist in Supabase schema (unless you added the column)
             cloudData.remove('local_image_path'); 
             
             await _client.from(item.localTable).upsert(cloudData);
