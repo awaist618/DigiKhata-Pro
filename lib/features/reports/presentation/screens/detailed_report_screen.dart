@@ -90,19 +90,24 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
   Widget build(BuildContext context) {
     final statsAsync = ref.watch(dashboardStatsProvider);
     final settings = ref.watch(settingsProvider);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           widget.reportType,
-          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            color: isDarkMode ? Colors.white : AppColors.textPrimary,
+          ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        iconTheme: IconThemeData(color: isDarkMode ? Colors.white : AppColors.textPrimary),
         actions: [
           IconButton(
-            icon: const Icon(Icons.file_download_outlined, color: AppColors.primaryBlue),
+            icon: Icon(Icons.file_download_outlined, color: isDarkMode ? AppColors.skyBlue : AppColors.primaryBlue),
             onPressed: _handleExport,
             tooltip: 'Export Report',
           ),
@@ -111,14 +116,19 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
       ),
       body: Column(
         children: [
-          _buildFilters(),
+          _buildFilters(isDarkMode),
           Expanded(
             child: statsAsync.when(
               data: (stats) {
                 var filteredTx = _filterTransactions(stats.recentTransactions);
                 
                 if (filteredTx.isEmpty) {
-                  return const Center(child: Text('No data found for the selected filters'));
+                  return Center(
+                    child: Text(
+                      'No data found for the selected filters',
+                      style: TextStyle(color: isDarkMode ? Colors.white70 : AppColors.textSecondary),
+                    ),
+                  );
                 }
 
                 return ListView.builder(
@@ -126,12 +136,12 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
                   itemCount: filteredTx.length,
                   itemBuilder: (context, index) {
                     final tx = filteredTx[index];
-                    return _buildTransactionItem(tx, settings);
+                    return _buildTransactionItem(tx, settings, isDarkMode);
                   },
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, st) => Center(child: Text('Error: $err')),
+              error: (err, st) => Center(child: Text('Error: $err', style: TextStyle(color: AppColors.error))),
             ),
           ),
         ],
@@ -139,10 +149,10 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
     );
   }
 
-  Widget _buildFilters() {
+  Widget _buildFilters(bool isDarkMode) {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.white,
+      color: isDarkMode ? AppColors.logoNavyBottom : Colors.white,
       child: Column(
         children: [
           Row(
@@ -150,12 +160,14 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
               Expanded(
                 child: TextField(
                   onChanged: (val) => setState(() => _searchQuery = val),
+                  style: TextStyle(color: isDarkMode ? Colors.white : AppColors.textPrimary),
                   decoration: InputDecoration(
                     hintText: 'Search description...',
-                    prefixIcon: const Icon(Icons.search, size: 20),
+                    hintStyle: TextStyle(color: isDarkMode ? Colors.white60 : AppColors.textSecondary),
+                    prefixIcon: Icon(Icons.search, size: 20, color: isDarkMode ? AppColors.skyBlue : AppColors.primaryBlue),
                     contentPadding: const EdgeInsets.symmetric(vertical: 0),
                     filled: true,
-                    fillColor: AppColors.background,
+                    fillColor: isDarkMode ? AppColors.deepNavy : AppColors.background,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                   ),
                 ),
@@ -164,6 +176,9 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
               IconButton.filledTonal(
                 onPressed: _selectDateRange,
                 icon: const Icon(Icons.calendar_today, size: 20),
+                style: IconButton.styleFrom(
+                  backgroundColor: isDarkMode ? AppColors.skyBlue.withValues(alpha: 0.1) : null,
+                ),
               ),
             ],
           ),
@@ -173,11 +188,13 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
               child: Row(
                 children: [
                   Chip(
+                    backgroundColor: isDarkMode ? AppColors.primaryBlue.withValues(alpha: 0.2) : null,
                     label: Text(
                       '${DateFormat('dd MMM').format(_selectedDateRange!.start)} - ${DateFormat('dd MMM').format(_selectedDateRange!.end)}',
-                      style: const TextStyle(fontSize: 12),
+                      style: TextStyle(fontSize: 12, color: isDarkMode ? Colors.white : null),
                     ),
                     onDeleted: () => setState(() => _selectedDateRange = null),
+                    deleteIconColor: isDarkMode ? Colors.white70 : null,
                   ),
                 ],
               ),
@@ -209,7 +226,7 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
     if (picked != null) setState(() => _selectedDateRange = picked);
   }
 
-  Widget _buildTransactionItem(TransactionModel tx, dynamic settings) {
+  Widget _buildTransactionItem(TransactionModel tx, dynamic settings, bool isDarkMode) {
     final isCredit = tx.type == TransactionType.credit;
     return InkWell(
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TransactionDetailsScreen(transaction: tx))),
@@ -218,8 +235,15 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDarkMode ? AppColors.logoNavyBottom : Colors.white,
           borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDarkMode ? 0.2 : 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
@@ -232,8 +256,22 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(tx.description ?? (isCredit ? 'Cash In' : 'Cash Out'), style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
-                  Text(DateFormat('dd MMM yyyy').format(tx.date), style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                  Text(
+                    tx.description ?? (isCredit ? 'Cash In' : 'Cash Out'), 
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.bold,
+                      color: isDarkMode ? Colors.white : AppColors.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    DateFormat('dd MMM yyyy').format(tx.date), 
+                    style: TextStyle(
+                      fontSize: 12, 
+                      color: isDarkMode ? Colors.white60 : AppColors.textSecondary,
+                    ),
+                  ),
                 ],
               ),
             ),

@@ -17,6 +17,7 @@ class SummaryCards extends ConsumerWidget {
       children: [
         Expanded(
           child: _buildSummaryCard(
+            context,
             'TOTAL RECEIVABLE',
             '${settings.currency} ${stats.totalReceivable.toStringAsFixed(0)}',
             Icons.arrow_downward_rounded,
@@ -27,6 +28,7 @@ class SummaryCards extends ConsumerWidget {
         const SizedBox(width: 16),
         Expanded(
           child: _buildSummaryCard(
+            context,
             'TOTAL PAYABLE',
             '${settings.currency} ${stats.totalPayable.toStringAsFixed(0)}',
             Icons.arrow_upward_rounded,
@@ -38,15 +40,17 @@ class SummaryCards extends ConsumerWidget {
     );
   }
 
-  Widget _buildSummaryCard(String title, String amount, IconData icon, Color color, String subtitle) {
+  Widget _buildSummaryCard(BuildContext context, String title, String amount, IconData icon, Color color, String subtitle) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode ? AppColors.logoNavyBottom : Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.2 : 0.04),
             blurRadius: 15,
             offset: const Offset(0, 6),
           ),
@@ -66,12 +70,17 @@ class SummaryCards extends ConsumerWidget {
                 ),
                 child: Icon(icon, color: color, size: 18),
               ),
-              Text(
-                subtitle,
-                style: GoogleFonts.inter(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: color,
+              Expanded(
+                child: Text(
+                  subtitle,
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                  textAlign: TextAlign.end,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -81,18 +90,23 @@ class SummaryCards extends ConsumerWidget {
             title,
             style: GoogleFonts.inter(
               fontSize: 10,
-              color: AppColors.textSecondary,
+              color: isDarkMode ? Colors.white70 : AppColors.textSecondary,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 6),
-          Text(
-            amount,
-            style: GoogleFonts.robotoMono(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              amount,
+              style: GoogleFonts.robotoMono(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: isDarkMode ? Colors.white : AppColors.textPrimary,
+              ),
             ),
           ),
         ],

@@ -15,10 +15,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:khataplus/features/supplier/presentation/providers/supplier_provider.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:khataplus/features/dashboard/presentation/providers/transaction_provider.dart';
 
 enum TransactionParty { customer, supplier }
-
-import 'package:khataplus/features/dashboard/presentation/providers/transaction_provider.dart';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
   final TransactionType type;
@@ -127,16 +126,21 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     final customers = ref.watch(customersProvider).value ?? [];
     final suppliers = ref.watch(suppliersProvider).value ?? [];
     final isCredit = widget.type == TransactionType.credit;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           isCredit ? 'Cash In (Credit)' : 'Cash Out (Debit)',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            color: isDarkMode ? Colors.white : AppColors.textPrimary,
+          ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        iconTheme: IconThemeData(color: isDarkMode ? Colors.white : AppColors.textPrimary),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -146,32 +150,45 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Party Selection (Customer/Supplier)
-              SegmentedButton<TransactionParty>(
-                segments: const [
-                  ButtonSegment(value: TransactionParty.customer, label: Text('Customer'), icon: Icon(Icons.person)),
-                  ButtonSegment(value: TransactionParty.supplier, label: Text('Supplier'), icon: Icon(Icons.business)),
-                ],
-                selected: {_selectedParty},
-                onSelectionChanged: (set) {
-                  setState(() {
-                    _selectedParty = set.first;
-                    _selectedId = null;
-                  });
-                },
+              Center(
+                child: SegmentedButton<TransactionParty>(
+                  segments: const [
+                    ButtonSegment(value: TransactionParty.customer, label: Text('Customer'), icon: Icon(Icons.person)),
+                    ButtonSegment(value: TransactionParty.supplier, label: Text('Supplier'), icon: Icon(Icons.business)),
+                  ],
+                  selected: {_selectedParty},
+                  onSelectionChanged: (set) {
+                    setState(() {
+                      _selectedParty = set.first;
+                      _selectedId = null;
+                    });
+                  },
+                  style: SegmentedButton.styleFrom(
+                    backgroundColor: isDarkMode ? AppColors.logoNavyBottom : Colors.white,
+                    selectedBackgroundColor: AppColors.primaryBlue,
+                    selectedForegroundColor: Colors.white,
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
               
               Text(
                 _selectedParty == TransactionParty.customer ? 'select_customer'.tr() : 'select_supplier'.tr(),
-                style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w600, 
+                  color: isDarkMode ? Colors.white70 : AppColors.textSecondary,
+                ),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 value: _selectedId,
+                dropdownColor: isDarkMode ? AppColors.logoNavyBottom : Colors.white,
+                style: TextStyle(color: isDarkMode ? Colors.white : AppColors.textPrimary),
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: AppColors.inputBackground,
+                  fillColor: isDarkMode ? AppColors.logoNavyBottom : AppColors.inputBackground,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
                 items: (_selectedParty == TransactionParty.customer 
                         ? customers.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList()
@@ -184,10 +201,11 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               // Date Selection
               InkWell(
                 onTap: _pickDate,
+                borderRadius: BorderRadius.circular(16),
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.inputBackground,
+                    color: isDarkMode ? AppColors.logoNavyBottom : AppColors.inputBackground,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
@@ -196,7 +214,10 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                       const SizedBox(width: 12),
                       Text(
                         DateFormat('dd MMMM yyyy').format(_selectedDate),
-                        style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w500,
+                          color: isDarkMode ? Colors.white : AppColors.textPrimary,
+                        ),
                       ),
                       const Spacer(),
                       const Text('Change', style: TextStyle(color: AppColors.primaryBlue, fontSize: 12)),
@@ -230,21 +251,25 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               // Image Attachment
               InkWell(
                 onTap: _pickImage,
+                borderRadius: BorderRadius.circular(16),
                 child: Container(
                   height: 120,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: AppColors.inputBackground,
+                    color: isDarkMode ? AppColors.logoNavyBottom : AppColors.inputBackground,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.border, style: BorderStyle.solid),
+                    border: Border.all(color: isDarkMode ? Colors.white10 : AppColors.border),
                   ),
                   child: _selectedImage == null
                       ? Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.add_a_photo_outlined, color: AppColors.textSecondary),
+                            const Icon(Icons.add_a_photo_outlined, color: AppColors.primaryBlue),
                             const SizedBox(height: 8),
-                            Text('Attach Receipt Image', style: GoogleFonts.inter(color: AppColors.textSecondary)),
+                            Text(
+                              'Attach Receipt Image', 
+                              style: GoogleFonts.inter(color: isDarkMode ? Colors.white70 : AppColors.textSecondary),
+                            ),
                           ],
                         )
                       : ClipRRect(

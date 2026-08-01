@@ -148,19 +148,25 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           '${widget.partyName}\'s Ledger',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            color: isDarkMode ? Colors.white : AppColors.textPrimary,
+          ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        iconTheme: IconThemeData(color: isDarkMode ? Colors.white : AppColors.textPrimary),
         actions: [
           if (widget.isCustomer)
             IconButton(
-              icon: const Icon(Icons.qr_code_2, color: AppColors.primaryBlue),
+              icon: Icon(Icons.qr_code_2, color: isDarkMode ? AppColors.skyBlue : AppColors.primaryBlue),
               onPressed: () {
                 showDialog(
                   context: context,
@@ -174,7 +180,7 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
               tooltip: 'Customer QR',
             ),
           IconButton(
-            icon: const Icon(Icons.notifications_active_outlined, color: AppColors.primaryBlue),
+            icon: Icon(Icons.notifications_active_outlined, color: isDarkMode ? AppColors.skyBlue : AppColors.primaryBlue),
             onPressed: () async {
               final transactions = await _transactionsFuture;
               double currentBalance = 0;
@@ -187,7 +193,7 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
             tooltip: 'Send Reminder',
           ),
           IconButton(
-            icon: const Icon(Icons.file_download_outlined, color: AppColors.primaryBlue),
+            icon: Icon(Icons.file_download_outlined, color: isDarkMode ? AppColors.skyBlue : AppColors.primaryBlue),
             onPressed: () async {
               final transactions = await _transactionsFuture;
               _handleExport(transactions);
@@ -204,12 +210,17 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(child: Text('Error: ${snapshot.error}', style: const TextStyle(color: AppColors.error)));
           }
           
           final transactions = snapshot.data ?? [];
           if (transactions.isEmpty) {
-            return const Center(child: Text('No transactions yet'));
+            return Center(
+              child: Text(
+                'No transactions yet',
+                style: TextStyle(color: isDarkMode ? Colors.white70 : AppColors.textSecondary),
+              ),
+            );
           }
 
           double runningBalance = 0;
@@ -240,11 +251,11 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
               return Container(
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDarkMode ? AppColors.logoNavyBottom : Colors.white,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
+                      color: Colors.black.withValues(alpha: isDarkMode ? 0.2 : 0.03),
                       blurRadius: 15,
                       offset: const Offset(0, 6),
                     ),
@@ -279,15 +290,17 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
                                   style: GoogleFonts.poppins(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
-                                    color: AppColors.textPrimary,
+                                    color: isDarkMode ? Colors.white : AppColors.textPrimary,
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   DateFormat('${settings.dateFormat}, hh:mm a').format(tx.date),
                                   style: GoogleFonts.inter(
                                     fontSize: 12,
-                                    color: AppColors.textSecondary,
+                                    color: isDarkMode ? Colors.white60 : AppColors.textSecondary,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -297,19 +310,22 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text(
-                                '${isCredit ? "+" : "-"} ${settings.currency} ${tx.amount.toStringAsFixed(0)}',
-                                style: GoogleFonts.robotoMono(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 18,
-                                  color: isCredit ? AppColors.success : AppColors.danger,
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  '${isCredit ? "+" : "-"} ${settings.currency} ${tx.amount.toStringAsFixed(0)}',
+                                  style: GoogleFonts.robotoMono(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 18,
+                                    color: isCredit ? AppColors.success : AppColors.danger,
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: AppColors.background,
+                                  color: isDarkMode ? AppColors.deepNavy : AppColors.background,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
@@ -317,7 +333,7 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
                                   style: GoogleFonts.inter(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.textSecondary,
+                                    color: isDarkMode ? Colors.white70 : AppColors.textSecondary,
                                   ),
                                 ),
                               ),
@@ -356,13 +372,13 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppColors.background,
+                            color: isDarkMode ? AppColors.deepNavy : AppColors.background,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.notes, size: 14, color: AppColors.textSecondary),
+                              Icon(Icons.notes, size: 14, color: isDarkMode ? Colors.white70 : AppColors.textSecondary),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
@@ -370,7 +386,7 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
                                   style: GoogleFonts.inter(
                                     fontSize: 12,
                                     fontStyle: FontStyle.italic,
-                                    color: AppColors.textSecondary,
+                                    color: isDarkMode ? Colors.white70 : AppColors.textSecondary,
                                   ),
                                 ),
                               ),

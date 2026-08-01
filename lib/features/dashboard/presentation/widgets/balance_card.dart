@@ -78,13 +78,16 @@ class BalanceCard extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    '${settings.currency} ${totalBalance.toStringAsFixed(0)}',
-                    style: GoogleFonts.robotoMono(
-                      fontSize: 38,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: -1,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      '${settings.currency} ${totalBalance.toStringAsFixed(0)}',
+                      style: GoogleFonts.robotoMono(
+                        fontSize: 38,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: -1,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -95,6 +98,8 @@ class BalanceCard extends ConsumerWidget {
                       color: Colors.white.withValues(alpha: 0.7),
                       fontWeight: FontWeight.w500,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 28),
                   Container(
@@ -106,8 +111,9 @@ class BalanceCard extends ConsumerWidget {
                     child: Row(
                       children: [
                         Expanded(child: _buildMiniStat(Icons.arrow_upward, 'Cash In', '${settings.currency} ${stats.todayCashIn.toStringAsFixed(0)}', Colors.greenAccent)),
+                        const SizedBox(width: 12),
                         Container(width: 1, height: 30, color: Colors.white.withValues(alpha: 0.1)),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 12),
                         Expanded(child: _buildMiniStat(Icons.arrow_downward, 'Cash Out', '${settings.currency} ${stats.todayCashOut.toStringAsFixed(0)}', Colors.redAccent)),
                       ],
                     ),
@@ -132,23 +138,30 @@ class BalanceCard extends ConsumerWidget {
           ),
           child: Icon(icon, size: 14, color: iconColor),
         ),
-        const SizedBox(width: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: GoogleFonts.inter(fontSize: 10, color: Colors.white70, fontWeight: FontWeight.w600),
-            ),
-            Text(
-              amount,
-              style: GoogleFonts.robotoMono(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.inter(fontSize: 10, color: Colors.white70, fontWeight: FontWeight.w600),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
-          ],
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  amount,
+                  style: GoogleFonts.robotoMono(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

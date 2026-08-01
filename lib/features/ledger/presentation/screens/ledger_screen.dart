@@ -17,16 +17,21 @@ class LedgerScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(dashboardStatsProvider);
     final settings = ref.watch(settingsProvider);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           'Daily Ledger',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            color: isDarkMode ? Colors.white : AppColors.textPrimary,
+          ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        iconTheme: IconThemeData(color: isDarkMode ? Colors.white : AppColors.textPrimary),
       ),
       body: statsAsync.when(
         data: (stats) {
@@ -35,16 +40,16 @@ class LedgerScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.history_rounded, size: 80, color: AppColors.textSecondary.withValues(alpha: 0.3)),
+                  Icon(Icons.history_rounded, size: 80, color: (isDarkMode ? Colors.white : AppColors.textSecondary).withValues(alpha: 0.3)),
                   const SizedBox(height: 16),
                   Text(
                     'Your ledger is empty',
-                    style: GoogleFonts.poppins(color: AppColors.textSecondary, fontSize: 16, fontWeight: FontWeight.w600),
+                    style: GoogleFonts.poppins(color: isDarkMode ? Colors.white70 : AppColors.textSecondary, fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Record your first entry from the Dashboard',
-                    style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 13),
+                    style: GoogleFonts.inter(color: isDarkMode ? Colors.white60 : AppColors.textSecondary, fontSize: 13),
                   ),
                 ],
               ),
@@ -61,11 +66,11 @@ class LedgerScreen extends ConsumerWidget {
               return Container(
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDarkMode ? AppColors.logoNavyBottom : Colors.white,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
+                      color: Colors.black.withValues(alpha: isDarkMode ? 0.2 : 0.03),
                       blurRadius: 15,
                       offset: const Offset(0, 6),
                     ),
@@ -99,22 +104,35 @@ class LedgerScreen extends ConsumerWidget {
                               children: [
                                 Text(
                                   tx.description ?? (isCredit ? 'Cash In' : 'Cash Out'),
-                                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16),
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.bold, 
+                                    fontSize: 16,
+                                    color: isDarkMode ? Colors.white : AppColors.textPrimary,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   DateFormat('${settings.dateFormat}, hh:mm a').format(tx.date),
-                                  style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12, 
+                                    color: isDarkMode ? Colors.white60 : AppColors.textSecondary, 
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                          Text(
-                            '${isCredit ? "+" : "-"} ${settings.currency} ${tx.amount.toStringAsFixed(0)}',
-                            style: GoogleFonts.robotoMono(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 18,
-                              color: isCredit ? AppColors.success : AppColors.danger,
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              '${isCredit ? "+" : "-"} ${settings.currency} ${tx.amount.toStringAsFixed(0)}',
+                              style: GoogleFonts.robotoMono(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 18,
+                                color: isCredit ? AppColors.success : AppColors.danger,
+                              ),
                             ),
                           ),
                         ],
