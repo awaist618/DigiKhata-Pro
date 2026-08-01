@@ -10,6 +10,23 @@ class SupplierRepository {
 
   SupplierRepository(this._client, this._db);
 
+  Stream<List<SupplierModel>> watchSuppliers(String businessId) {
+    return (_db.select(_db.suppliers)..where((t) => t.businessId.equals(businessId))..orderBy([(t) => OrderingTerm(expression: t.name)]))
+        .watch()
+        .map((rows) => rows.map((s) => SupplierModel(
+              id: s.id,
+              businessId: s.businessId,
+              name: s.name,
+              phone: s.phone,
+              email: s.email,
+              address: s.address,
+              notes: s.notes,
+              photoUrl: s.photoUrl,
+              balance: s.balance,
+              createdAt: s.createdAt,
+            )).toList());
+  }
+
   Future<List<SupplierModel>> getSuppliers(String businessId) async {
     try {
       final localSuppliers = await (_db.select(_db.suppliers)..where((t) => t.businessId.equals(businessId))).get();

@@ -20,7 +20,11 @@ class SyncService {
           final data = jsonDecode(item.data);
           
           if (item.action == 'insert' || item.action == 'update') {
-            await _client.from(item.localTable).upsert(data);
+            // Remove local-only fields that don't exist in Supabase schema to prevent PGRST204
+            final Map<String, dynamic> cloudData = Map.from(data);
+            cloudData.remove('local_image_path'); 
+            
+            await _client.from(item.localTable).upsert(cloudData);
             
             // Special handling for transaction balances on server
             if (item.localTable == 'transactions' && item.action == 'insert') {
@@ -47,9 +51,9 @@ class SyncService {
           await (_db.delete(_db.syncQueue)..where((t) => t.id.equals(item.id))).go();
           successCount++;
         } catch (e) {
-          debugPrint('Sync failed for item ${item.id}: $e');
-          // If network error, stop processing queue
-          break; 
+          debugPrint('Sync failed for item ${item.id} (${item.localTable}): $e');
+          // skip this item and continue with the rest of the queue
+          continue;
         }
       }
     } catch (e) {

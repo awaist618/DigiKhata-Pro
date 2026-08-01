@@ -1,18 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:khataplus/core/services/supabase_service.dart';
 import 'package:khataplus/features/business/presentation/providers/business_provider.dart';
 import '../../data/repositories/dashboard_repository.dart';
+import 'package:khataplus/core/providers/database_provider.dart';
 
 final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
-  final supabase = ref.watch(supabaseServiceProvider);
-  return DashboardRepository(supabase.client);
+  final database = ref.watch(databaseProvider);
+  return DashboardRepository(database);
 });
 
-final dashboardStatsProvider = FutureProvider<DashboardStats>((ref) async {
+final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
   final repository = ref.watch(dashboardRepositoryProvider);
   final businessId = ref.watch(selectedBusinessIdProvider);
   
-  if (businessId == null) throw 'No business selected';
+  if (businessId == null) return Stream.value(DashboardStats.empty());
   
-  return await repository.getDashboardStats(businessId);
+  return repository.watchDashboardStats(businessId);
 });

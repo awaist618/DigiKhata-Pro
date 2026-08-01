@@ -1,22 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'features/splash/presentation/splash_screen.dart';
 import 'core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'features/profile/presentation/providers/profile_provider.dart';
 
 import 'package:easy_localization/easy_localization.dart';
 
 import 'core/providers/settings_provider.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'core/services/notification_service.dart';
 import 'package:workmanager/workmanager.dart';
 import 'core/database/app_database.dart';
 import 'core/services/sync_service.dart';
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  // Background notifications are automatically shown by the OS.
+  // We can add logic here to sync data if needed.
+}
 
 @pragma('vm:entry-point')
 void callbackDispatcher() {
@@ -50,10 +56,12 @@ void callbackDispatcher() {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   await EasyLocalization.ensureInitialized();
 
   // Initialize Workmanager for background sync
-  Workmanager().initialize(callbackDispatcher, isInDebugMode: kDebugMode);
+  Workmanager().initialize(callbackDispatcher);
   Workmanager().registerPeriodicTask(
     "1", 
     "syncTask", 
@@ -124,14 +132,18 @@ class MyApp extends ConsumerWidget {
           seedColor: AppColors.primaryBlue,
           primary: AppColors.primaryBlue,
           secondary: AppColors.amberGold,
-          surface: AppColors.logoNavyBottom,
+          surface: AppColors.surfaceDark,
           error: AppColors.error,
           brightness: Brightness.dark,
+          onSurface: AppColors.textPrimaryDark,
         ),
         textTheme: GoogleFonts.poppinsTextTheme(
           ThemeData.dark().textTheme,
+        ).apply(
+          bodyColor: AppColors.textPrimaryDark,
+          displayColor: AppColors.textPrimaryDark,
         ),
-        scaffoldBackgroundColor: AppColors.deepNavy,
+        scaffoldBackgroundColor: AppColors.backgroundDark,
       ),
       theme: ThemeData(
         useMaterial3: true,

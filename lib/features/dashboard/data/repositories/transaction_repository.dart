@@ -1,14 +1,41 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 import 'package:khataplus/core/database/app_database.dart';
 import 'package:drift/drift.dart';
 import 'dart:convert';
-import '../models/transaction_model.dart';
+import '../../data/models/transaction_model.dart';
+import '../../../notifications/data/models/notification_model.dart';
+import '../../../notifications/data/repositories/notification_repository.dart';
+
+import 'package:easy_localization/easy_localization.dart';
 
 class TransactionRepository {
   final SupabaseClient _client;
   final AppDatabase _db;
+  final NotificationRepository _notificationRepo;
 
-  TransactionRepository(this._client, this._db);
+  TransactionRepository(this._client, this._db, this._notificationRepo);
+
+  Stream<List<TransactionModel>> watchPartyTransactions(String partyId, bool isCustomer) {
+    final query = _db.select(_db.transactions)
+      ..where((t) => isCustomer ? t.customerId.equals(partyId) : t.supplierId.equals(partyId))
+      ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.asc)]);
+
+    return query.watch().map((rows) => rows.map((t) => TransactionModel(
+          id: t.id,
+          businessId: t.businessId,
+          customerId: t.customerId,
+          supplierId: t.supplierId,
+          amount: t.amount,
+          description: t.description,
+          type: t.type == 'credit' ? TransactionType.credit : TransactionType.debit,
+          date: t.createdAt,
+          imageUrl: t.imageUrl,
+          localImagePath: t.localImagePath,
+          notes: t.notes,
+          tag: t.tag,
+        )).toList());
+  }
 
   Future<void> addTransaction(TransactionModel tx) async {
     final id = tx.id.isEmpty ? DateTime.now().millisecondsSinceEpoch.toString() : tx.id;
@@ -25,10 +52,22 @@ class TransactionRepository {
       type: updatedTx.type.name,
       createdAt: updatedTx.date,
       imageUrl: Value(updatedTx.imageUrl),
+      localImagePath: Value(updatedTx.localImagePath),
       notes: Value(updatedTx.notes),
+      tag: Value(updatedTx.tag),
     ));
 
-    // 2. Add to sync queue
+    // 2. Add professional notification
+    await _notificationRepo.addNotification(NotificationModel(
+      title: updatedTx.type == TransactionType.credit ? 'cash_in_recorded'.tr() : 'cash_out_recorded'.tr(),
+      body: updatedTx.type == TransactionType.credit 
+          ? 'received_amount'.tr(args: [updatedTx.amount.toString(), updatedTx.description ?? "Transaction"])
+          : 'paid_amount'.tr(args: [updatedTx.amount.toString(), updatedTx.description ?? "Transaction"]),
+      type: updatedTx.type == TransactionType.credit ? NotificationType.success : NotificationType.payment,
+      createdAt: DateTime.now(),
+    ));
+
+    // 3. Add to sync queue
     await _db.into(_db.syncQueue).insert(SyncQueueCompanion.insert(
       localTable: 'transactions',
       action: 'insert',
@@ -91,6 +130,7 @@ class TransactionRepository {
       description: Value(newTx.description),
       notes: Value(newTx.notes),
       imageUrl: Value(newTx.imageUrl),
+      localImagePath: Value(newTx.localImagePath),
     ));
 
     // 2. Sync queue
@@ -129,33 +169,36 @@ class TransactionRepository {
       final pending = await _db.select(_db.syncQueue).get();
       for (var item in pending) {
         try {
-          if (item.action == 'insert') {
-            await _client.from(item.localTable).upsert(jsonDecode(item.data));
-            if (item.localTable == 'transactions') {
-              final txData = jsonDecode(item.data);
-              final factor = txData['type'] == 'credit' ? 1 : -1;
-              final amount = (txData['amount'] as num).toDouble() * factor;
+          final data = jsonDecode(item.data);
+          if (item.action == 'insert' || item.action == 'update') {
+            // Filter out local-only fields
+            final cloudData = Map<String, dynamic>.from(data);
+            cloudData.remove('local_image_path');
+            
+            await _client.from(item.localTable).upsert(cloudData);
+            
+            if (item.localTable == 'transactions' && item.action == 'insert') {
+              final factor = data['type'] == 'credit' ? 1 : -1;
+              final amount = (data['amount'] as num).toDouble() * factor;
               
-              if (txData['customer_id'] != null) {
+              if (data['customer_id'] != null) {
                 await _client.rpc('update_customer_balance', params: {
-                  'c_id': txData['customer_id'],
+                  'c_id': data['customer_id'],
                   'amount_change': amount,
                 });
-              } else if (txData['supplier_id'] != null) {
+              } else if (data['supplier_id'] != null) {
                 await _client.rpc('update_supplier_balance', params: {
-                  's_id': txData['supplier_id'],
+                  's_id': data['supplier_id'],
                   'amount_change': amount,
                 });
               }
             }
-          } else if (item.action == 'update') {
-            await _client.from(item.localTable).update(jsonDecode(item.data)).eq('id', item.recordId);
-            // Handle balance updates for transaction updates if necessary on server
           } else if (item.action == 'delete') {
             await _client.from(item.localTable).delete().eq('id', item.recordId);
           }
           await (_db.delete(_db.syncQueue)..where((t) => t.id.equals(item.id))).go();
         } catch (e) {
+          debugPrint('Immediate sync failed for ${item.id}: $e');
           break;
         }
       }

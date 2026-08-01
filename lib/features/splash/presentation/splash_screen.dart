@@ -9,6 +9,8 @@ import '../../../core/widgets/app_logo.dart';
 import 'package:khataplus/core/utils/navigation_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:khataplus/core/providers/security_provider.dart';
+
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
@@ -28,9 +30,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     if (!mounted) return;
 
     final session = ref.read(supabaseServiceProvider).currentSession;
-    
+    final security = ref.read(securityProvider);
+
     if (session != null) {
-      NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
+      if (security.isBiometricEnabled) {
+        final authenticated = await ref.read(securityProvider.notifier).authenticate();
+        if (authenticated && mounted) {
+          NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
+        } else if (mounted) {
+          // If biometric fails, go to login for re-authentication
+          NavigationUtils.pushReplacement(context, const LoginScreen());
+        }
+      } else {
+        NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
+      }
     } else {
       NavigationUtils.pushReplacement(context, const LoginScreen());
     }

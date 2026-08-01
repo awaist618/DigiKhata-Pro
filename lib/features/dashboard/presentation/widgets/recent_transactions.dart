@@ -17,6 +17,7 @@ class RecentTransactions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -28,7 +29,7 @@ class RecentTransactions extends ConsumerWidget {
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary,
               ),
             ),
             TextButton(
@@ -61,11 +62,11 @@ class RecentTransactions extends ConsumerWidget {
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.02),
+                      color: isDarkMode ? Colors.black.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.02),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -102,7 +103,7 @@ class RecentTransactions extends ConsumerWidget {
                                   style: GoogleFonts.inter(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.textPrimary,
+                                    color: isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
@@ -110,7 +111,7 @@ class RecentTransactions extends ConsumerWidget {
                                   DateFormat(settings.dateFormat).format(tx.date),
                                   style: GoogleFonts.inter(
                                     fontSize: 12,
-                                    color: AppColors.textSecondary,
+                                    color: isDarkMode ? AppColors.textSecondaryDark : AppColors.textSecondary,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),

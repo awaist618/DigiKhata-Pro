@@ -12,13 +12,17 @@ class AppColors {
   
   // Neutral Palette
   static const Color background = Color(0xFFF5F7FA);
+  static const Color backgroundDark = Color(0xFF0F1B2D);
   static const Color surface = Color(0xFFFFFFFF);
+  static const Color surfaceDark = Color(0xFF16233A);
   static const Color border = Color(0xFFE5E7EB);
   static const Color inputBackground = Color(0xFFF8FAFC);
   
   // Text Palette
   static const Color textPrimary = Color(0xFF1A1D29);
+  static const Color textPrimaryDark = Color(0xFFE8EAF0);
   static const Color textSecondary = Color(0xFF6B7280);
+  static const Color textSecondaryDark = Color(0xFFA7B1C2);
   
   // Accent Palette
   static const Color amberGold = Color(0xFFFFB300);

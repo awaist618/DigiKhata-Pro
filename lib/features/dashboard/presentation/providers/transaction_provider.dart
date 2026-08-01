@@ -7,10 +7,18 @@ import 'package:khataplus/features/customer/presentation/providers/customer_prov
 import 'package:khataplus/features/supplier/presentation/providers/supplier_provider.dart';
 import 'package:khataplus/core/providers/database_provider.dart';
 
+import 'package:khataplus/features/notifications/data/repositories/notification_repository.dart';
+
 final transactionRepositoryProvider = Provider<TransactionRepository>((ref) {
   final supabase = ref.watch(supabaseServiceProvider);
   final database = ref.watch(databaseProvider);
-  return TransactionRepository(supabase.client, database);
+  final notificationRepo = ref.watch(notificationRepositoryProvider);
+  return TransactionRepository(supabase.client, database, notificationRepo);
+});
+
+final partyTransactionsProvider = StreamProvider.family<List<TransactionModel>, ({String id, bool isCustomer})>((ref, arg) {
+  final repository = ref.watch(transactionRepositoryProvider);
+  return repository.watchPartyTransactions(arg.id, arg.isCustomer);
 });
 
 final transactionActionProvider = Provider<TransactionActionNotifier>((ref) {

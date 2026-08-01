@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,6 +11,8 @@ import 'package:khataplus/features/business/presentation/providers/business_prov
 import 'package:khataplus/features/qr/presentation/widgets/customer_qr_dialog.dart';
 import 'package:khataplus/core/services/export_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import 'package:khataplus/features/dashboard/presentation/providers/transaction_provider.dart';
 
 class PartyLedgerScreen extends ConsumerStatefulWidget {
   final String partyId;
@@ -30,125 +33,11 @@ class PartyLedgerScreen extends ConsumerStatefulWidget {
 }
 
 class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
-  late Future<List<TransactionModel>> _transactionsFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadTransactions();
-  }
-
-  void _loadTransactions() {
-    setState(() {
-      _transactionsFuture = _fetchTransactions();
-    });
-  }
-
-  Future<List<TransactionModel>> _fetchTransactions() async {
-    final supabase = ref.read(supabaseServiceProvider).client;
-    final column = widget.isCustomer ? 'customer_id' : 'supplier_id';
-    
-    final response = await supabase
-        .from('transactions')
-        .select()
-        .eq(column, widget.partyId)
-        .order('created_at', ascending: true); // Ascending for running balance calculation
-
-    return (response as List).map((json) => TransactionModel.fromJson(json)).toList();
-  }
-
-  void _handleExport(List<TransactionModel> transactions) {
-    final businessName = ref.read(businessNameProvider);
-    final currency = ref.read(settingsProvider).currency;
-    
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Export ${widget.partyName}\'s Ledger', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18)),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildExportOption('PDF', Icons.picture_as_pdf, Colors.red, () async {
-                  Navigator.pop(context);
-                  await ExportService.exportLedgerToPdf(
-                    title: '${widget.partyName}\'s Ledger',
-                    transactions: transactions,
-                    businessName: businessName,
-                    currency: currency,
-                  );
-                }),
-                _buildExportOption('Excel', Icons.table_chart, Colors.green, () async {
-                  Navigator.pop(context);
-                  await ExportService.exportLedgerToExcel(
-                    transactions: transactions,
-                    fileName: '${widget.partyName.replaceAll(' ', '_')}_ledger'.toLowerCase(),
-                  );
-                }),
-              ],
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _sendReminder(double balance) async {
-    final settings = ref.read(settingsProvider);
-    final businessName = ref.read(businessNameProvider);
-    final String message;
-    
-    if (balance < 0) {
-      message = 'Dear ${widget.partyName}, a friendly reminder that you have an outstanding balance of ${settings.currency} ${balance.abs().toStringAsFixed(0)} with $businessName. Please clear it at your earliest convenience.';
-    } else {
-      message = 'Dear ${widget.partyName}, your account balance with $businessName is ${settings.currency} ${balance.toStringAsFixed(0)}. Thank you for your business!';
-    }
-
-    final Uri smsUri = Uri(
-      scheme: 'sms',
-      path: widget.partyPhone ?? '',
-      queryParameters: <String, String>{
-        'body': message,
-      },
-    );
-
-    if (await canLaunchUrl(smsUri)) {
-      await launchUrl(smsUri);
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not launch SMS app')),
-        );
-      }
-    }
-  }
-
-  Widget _buildExportOption(String label, IconData icon, Color color, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
-            child: Icon(icon, color: color, size: 32),
-          ),
-          const SizedBox(height: 8),
-          Text(label, style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final transactionsAsync = ref.watch(partyTransactionsProvider((id: widget.partyId, isCustomer: widget.isCustomer)));
+    final settings = ref.watch(settingsProvider);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -181,39 +70,30 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
             ),
           IconButton(
             icon: Icon(Icons.notifications_active_outlined, color: isDarkMode ? AppColors.skyBlue : AppColors.primaryBlue),
-            onPressed: () async {
-              final transactions = await _transactionsFuture;
-              double currentBalance = 0;
-              for (var tx in transactions) {
-                final factor = tx.type == TransactionType.credit ? 1 : -1;
-                currentBalance += tx.amount * factor;
-              }
-              _sendReminder(currentBalance);
+            onPressed: () {
+              transactionsAsync.whenData((transactions) {
+                double currentBalance = 0;
+                for (var tx in transactions) {
+                  final factor = tx.type == TransactionType.credit ? 1 : -1;
+                  currentBalance += tx.amount * factor;
+                }
+                _sendReminder(currentBalance);
+              });
             },
             tooltip: 'Send Reminder',
           ),
           IconButton(
             icon: Icon(Icons.file_download_outlined, color: isDarkMode ? AppColors.skyBlue : AppColors.primaryBlue),
-            onPressed: () async {
-              final transactions = await _transactionsFuture;
-              _handleExport(transactions);
+            onPressed: () {
+              transactionsAsync.whenData((transactions) => _handleExport(transactions));
             },
             tooltip: 'Export Ledger',
           ),
           const SizedBox(width: 8),
         ],
       ),
-      body: FutureBuilder<List<TransactionModel>>(
-        future: _transactionsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}', style: const TextStyle(color: AppColors.error)));
-          }
-          
-          final transactions = snapshot.data ?? [];
+      body: transactionsAsync.when(
+        data: (transactions) {
           if (transactions.isEmpty) {
             return Center(
               child: Text(
@@ -238,7 +118,6 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
           // Reverse for display (latest first)
           final reversedItems = ledgerItems.reversed.toList();
 
-          final settings = ref.watch(settingsProvider);
           return ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: reversedItems.length,
@@ -341,18 +220,25 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
                           ),
                         ],
                       ),
-                      if (tx.imageUrl != null) ...[
+                      if (tx.imageUrl != null || tx.localImagePath != null) ...[
                         const SizedBox(height: 16),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(16),
                           child: Stack(
                             children: [
-                              Image.network(
-                                tx.imageUrl!,
-                                height: 160,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                              ),
+                              tx.localImagePath != null 
+                                ? Image.file(
+                                    File(tx.localImagePath!),
+                                    height: 160,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Image.network(
+                                    tx.imageUrl!,
+                                    height: 160,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  ),
                               Positioned(
                                 top: 12,
                                 right: 12,
@@ -401,6 +287,97 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
             },
           );
         },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, st) => Center(child: Text('Error: $err')),
+      ),
+    );
+  }
+
+  void _handleExport(List<TransactionModel> transactions) {
+    final businessName = ref.read(businessNameProvider);
+    final currency = ref.read(settingsProvider).currency;
+    
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Export ${widget.partyName}\'s Ledger', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildExportOption('PDF', Icons.picture_as_pdf, Colors.red, () async {
+                  Navigator.pop(context);
+                  await ExportService.exportLedgerToPdf(
+                    title: '${widget.partyName}\'s Ledger',
+                    transactions: transactions,
+                    businessName: businessName,
+                    currency: currency,
+                  );
+                }),
+                _buildExportOption('Excel', Icons.table_chart, Colors.green, () async {
+                  Navigator.pop(context);
+                  await ExportService.exportLedgerToExcel(
+                    transactions: transactions,
+                    fileName: '${widget.partyName.replaceAll(' ', '_')}_ledger'.toLowerCase(),
+                  );
+                }),
+              ],
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _sendReminder(double balance) async {
+    final settings = ref.read(settingsProvider);
+    final businessName = ref.read(businessNameProvider);
+    final String message;
+    
+    if (balance < 0) {
+      message = 'Dear ${widget.partyName}, a friendly reminder that you have an outstanding balance of ${settings.currency} ${balance.abs().toStringAsFixed(0)} with $businessName. Please clear it at your earliest convenience.';
+    } else {
+      message = 'Dear ${widget.partyName}, your account balance with $businessName is ${settings.currency} ${balance.toStringAsFixed(0)}. Thank you for your business!';
+    }
+
+    final Uri smsUri = Uri(
+      scheme: 'sms',
+      path: widget.partyPhone ?? '',
+      queryParameters: <String, String>{
+        'body': message,
+      },
+    );
+
+    if (await canLaunchUrl(smsUri)) {
+      await launchUrl(smsUri);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not launch SMS app')),
+        );
+      }
+    }
+  }
+
+  Widget _buildExportOption(String label, IconData icon, Color color, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
+            child: Icon(icon, color: color, size: 32),
+          ),
+          const SizedBox(height: 8),
+          Text(label, style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+        ],
       ),
     );
   }

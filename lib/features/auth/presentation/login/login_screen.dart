@@ -8,6 +8,7 @@ import 'package:khataplus/core/theme/app_colors.dart';
 import 'package:khataplus/core/theme/app_text_styles.dart';
 import 'package:khataplus/core/widgets/app_logo.dart';
 import 'package:khataplus/core/services/supabase_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/curved_header.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/custom_text_field.dart';
 import 'package:khataplus/features/auth/presentation/login/widgets/primary_button.dart';
@@ -18,6 +19,8 @@ import 'package:khataplus/features/auth/presentation/register/register_screen.da
 import 'package:khataplus/features/auth/presentation/forgot_password/forgot_password_screen.dart';
 import 'package:khataplus/features/business/presentation/selection/business_selection_screen.dart';
 import 'package:khataplus/core/providers/security_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../register/widgets/google_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -40,6 +43,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
   @override
   void initState() {
     super.initState();
+    _checkBiometricLogin();
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
@@ -68,15 +72,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
     super.dispose();
   }
 
+  void _checkBiometricLogin() async {
+    // Wait for animation or build to complete
+    await Future.delayed(const Duration(milliseconds: 500));
+    final security = ref.read(securityProvider);
+    if (security.isBiometricEnabled) {
+      _handleBiometricLogin();
+    }
+  }
+
   void _handleLogin() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter both email and password'),
+        SnackBar(
+          content: Text('empty_fields'.tr()),
           backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
         ),
       );
       return;
@@ -100,12 +114,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
 
         NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
       }
+    } on AuthException catch (e) {
+      if (mounted) {
+        String errorMessage = 'login_failed'.tr();
+        if (e.message.contains('Invalid login credentials')) {
+          errorMessage = 'invalid_credentials'.tr();
+        }
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Login failed: ${e.toString()}'),
+            content: Text('login_failed'.tr()),
             backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -142,7 +173,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
 
     if (credentials == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please login with password once to enable Fingerprint')),
+        SnackBar(content: Text('please_login_manual'.tr())),
       );
       return;
     }
@@ -162,7 +193,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Biometric Login Failed: $e'), backgroundColor: AppColors.error),
+            SnackBar(content: Text('${'biometric_fail'.tr()}: $e'), backgroundColor: AppColors.error),
           );
         }
       } finally {
@@ -180,13 +211,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
       final enroll = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Enable Fingerprint?'),
-          content: const Text('Would you like to use your fingerprint for future logins?'),
+          title: Text('enable_fingerprint'.tr()),
+          content: Text('fingerprint_desc'.tr()),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('No Thanks')),
+            TextButton(onPressed: () => Navigator.pop(context, false), child: Text('no_thanks'.tr())),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Enable', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text('enable'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ),

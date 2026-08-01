@@ -48,7 +48,7 @@ class SummaryCards extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.logoNavyBottom : Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -107,7 +107,7 @@ class SummaryCards extends ConsumerWidget {
               style: GoogleFonts.robotoMono(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: isDarkMode ? Colors.white : AppColors.textPrimary,
+                color: isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary,
               ),
             ),
           ),

@@ -88,6 +88,15 @@ class SyncQueue extends Table {
   DateTimeColumn get createdAt => dateTime()();
 }
 
+class LocalNotifications extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get title => text()();
+  TextColumn get body => text()();
+  TextColumn get type => text()(); // payment, info, success, announcement
+  DateTimeColumn get createdAt => dateTime()();
+  BoolColumn get isRead => boolean().withDefault(const Constant(false))();
+}
+
 @DataClassName('LinkedBusiness')
 class LinkedBusinesses extends Table {
   TextColumn get id => text()();
@@ -100,12 +109,27 @@ class LinkedBusinesses extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [Businesses, Customers, Suppliers, Transactions, SyncQueue, LinkedBusinesses])
+@DriftDatabase(tables: [Businesses, Customers, Suppliers, Transactions, SyncQueue, LinkedBusinesses, LocalNotifications])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (m) async {
+        await m.createAll();
+      },
+      onUpgrade: (m, from, to) async {
+        if (from < 2) {
+          // Add LocalNotifications table if updating from version 1
+          await m.createTable(localNotifications);
+        }
+      },
+    );
+  }
 
   // Sync logic helpers will be added here
 }

@@ -120,7 +120,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> wit
         content: Text(
           'Password reset instructions have been sent to your email.',
           textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(color: AppColors.textSecondary),
+          style: GoogleFonts.inter(color: AppColors.textSecondary),
         ),
         actions: [
           Center(
@@ -131,7 +131,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> wit
               },
               child: Text(
                 'Back to Login',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.inter(
                   color: AppColors.primaryBlue,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -194,7 +194,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> wit
                           child: Text(
                             'Enter your registered email or phone number to reset your password.',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.inter(
                               fontSize: 17,
                               color: isDarkMode ? Colors.white70 : AppColors.textSecondary,
                               height: 1.4,
@@ -204,7 +204,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> wit
                         const SizedBox(height: 32),
                         // Input
                         CustomTextField(
-                          hintText: 'Email ',
+                          hintText: 'Email or Phone Number',
                           prefixIcon: Icons.mail_outline,
                           controller: _emailController,
                           validator: (val) {
@@ -231,13 +231,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> wit
                           children: [
                             Text(
                               'Remember your password? ',
-                              style: GoogleFonts.poppins(color: isDarkMode ? Colors.white70 : AppColors.textSecondary),
+                              style: GoogleFonts.inter(color: isDarkMode ? Colors.white70 : AppColors.textSecondary),
                             ),
                             InkWell(
                               onTap: () => Navigator.pop(context),
                               child: Text(
                                 'Login',
-                                style: GoogleFonts.poppins(
+                                style: GoogleFonts.inter(
                                   color: AppColors.primaryBlue,
                                   fontWeight: FontWeight.bold,
                                 ),

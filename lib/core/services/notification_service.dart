@@ -3,11 +3,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:khataplus/core/services/supabase_service.dart';
 
+import 'package:khataplus/features/notifications/data/models/notification_model.dart';
+import 'package:khataplus/features/notifications/data/repositories/notification_repository.dart';
+
 class NotificationService {
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
   final SupabaseService _supabase;
+  final NotificationRepository _repository;
 
-  NotificationService(this._supabase);
+  NotificationService(this._supabase, this._repository);
 
   Future<void> initialize() async {
     // 1. Request permissions
@@ -34,6 +38,14 @@ class NotificationService {
         debugPrint('Got a message whilst in the foreground!');
         if (message.notification != null) {
           debugPrint('Message also contained a notification: ${message.notification!.body}');
+          
+          // Save to local DB
+          _repository.addNotification(NotificationModel(
+            title: message.notification?.title ?? 'Notification',
+            body: message.notification?.body ?? '',
+            type: NotificationType.info, // Can be parsed from data if needed
+            createdAt: DateTime.now(),
+          ));
         }
       });
     }
@@ -57,5 +69,6 @@ class NotificationService {
 
 final notificationServiceProvider = Provider<NotificationService>((ref) {
   final supabase = ref.watch(supabaseServiceProvider);
-  return NotificationService(supabase);
+  final repository = ref.watch(notificationRepositoryProvider);
+  return NotificationService(supabase, repository);
 });

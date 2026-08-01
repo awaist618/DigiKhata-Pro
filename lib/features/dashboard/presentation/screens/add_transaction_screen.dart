@@ -96,15 +96,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           type: widget.type,
           date: _selectedDate,
           imageUrl: imageUrl,
+          localImagePath: _selectedImage?.path,
           customerId: _selectedParty == TransactionParty.customer ? _selectedId : null,
           supplierId: _selectedParty == TransactionParty.supplier ? _selectedId : null,
         );
         
         await ref.read(transactionActionProvider).addTransaction(tx);
-
-        ref.refresh(dashboardStatsProvider);
-        ref.read(customersProvider.notifier).loadCustomers();
-        ref.read(suppliersProvider.notifier).loadSuppliers();
 
         if (mounted) {
           Navigator.pop(context);

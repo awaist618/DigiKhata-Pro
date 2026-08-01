@@ -81,23 +81,22 @@ class _AddEditSupplierScreenState extends ConsumerState<AddEditSupplierScreen> {
   }
 
   Future<void> _pickContact() async {
-    if (await Permission.contacts.request().isGranted) {
-      final contact = await FlutterContacts.openExternalPick();
-      if (contact != null) {
-        final fullContact = await FlutterContacts.getContact(contact.id);
-        if (fullContact != null && fullContact.phones.isNotEmpty) {
-          setState(() {
-            _nameController.text = fullContact.displayName;
-            String phone = fullContact.phones.first.number.replaceAll(RegExp(r'\s+'), '');
-            _phoneController.text = phone;
-          });
-        }
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Contacts permission denied')),
-        );
+    final contact = await FlutterContacts.native.showPicker();
+    if (contact != null && contact.id != null) {
+      final fullContact = await FlutterContacts.get(
+        contact.id!,
+        properties: {
+          ContactProperty.phone,
+          ContactProperty.name,
+          ContactProperty.address,
+        },
+      );
+      if (fullContact != null && fullContact.phones.isNotEmpty) {
+        setState(() {
+          _nameController.text = fullContact.displayName ?? '';
+          String phone = fullContact.phones.first.number.replaceAll(RegExp(r'\s+'), '');
+          _phoneController.text = phone;
+        });
       }
     }
   }

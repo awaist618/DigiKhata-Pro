@@ -10,6 +10,24 @@ class CustomerRepository {
 
   CustomerRepository(this._client, this._db);
 
+  Stream<List<CustomerModel>> watchCustomers(String businessId) {
+    return (_db.select(_db.customers)..where((t) => t.businessId.equals(businessId))..orderBy([(t) => OrderingTerm(expression: t.name)]))
+        .watch()
+        .map((rows) => rows.map((c) => CustomerModel(
+              id: c.id,
+              businessId: c.businessId,
+              name: c.name,
+              phone: c.phone,
+              email: c.email,
+              address: c.address,
+              notes: c.notes,
+              photoUrl: c.photoUrl,
+              balance: c.balance,
+              isFavorite: c.isFavorite,
+              createdAt: c.createdAt,
+            )).toList());
+  }
+
   Future<List<CustomerModel>> getCustomers(String businessId) async {
     try {
       // 1. Try to fetch from local database first

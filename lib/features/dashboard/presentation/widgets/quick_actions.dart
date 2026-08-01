@@ -61,6 +61,7 @@ class QuickActions extends StatelessWidget {
   }
 
   Widget _buildActionItem(BuildContext context, String label, IconData icon, Color color, VoidCallback onTap) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(right: 16),
       child: InkWell(
@@ -83,7 +84,7 @@ class QuickActions extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary,
               ),
             ),
           ],

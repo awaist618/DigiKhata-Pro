@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
 import 'package:khataplus/core/services/supabase_service.dart';
 import 'package:khataplus/features/business/presentation/providers/business_provider.dart';
 import 'package:khataplus/core/providers/database_provider.dart';
@@ -20,30 +21,42 @@ final customersProvider = StateNotifierProvider<CustomerNotifier, AsyncValue<Lis
 class CustomerNotifier extends StateNotifier<AsyncValue<List<CustomerModel>>> {
   final CustomerRepository _repository;
   final String? _businessId;
+  StreamSubscription? _subscription;
 
   CustomerNotifier(this._repository, this._businessId) : super(const AsyncValue.loading()) {
     if (_businessId != null) {
-      loadCustomers();
+      _listenToCustomers();
     } else {
       state = const AsyncValue.data([]);
     }
   }
 
+  void _listenToCustomers() {
+    _subscription?.cancel();
+    _subscription = _repository.watchCustomers(_businessId!).listen(
+      (customers) {
+        state = AsyncValue.data(customers);
+      },
+      onError: (e, st) => state = AsyncValue.error(e, st),
+    );
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
   Future<void> loadCustomers() async {
-    if (_businessId == null) return;
-    state = const AsyncValue.loading();
-    try {
-      final customers = await _repository.getCustomers(_businessId!);
-      state = AsyncValue.data(customers);
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
+    // With stream, loadCustomers just ensures we are listening
+    if (_businessId != null && _subscription == null) {
+      _listenToCustomers();
     }
   }
 
   Future<void> addCustomer(CustomerModel customer) async {
     try {
       await _repository.addCustomer(customer);
-      await loadCustomers();
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -52,7 +65,6 @@ class CustomerNotifier extends StateNotifier<AsyncValue<List<CustomerModel>>> {
   Future<void> updateCustomer(CustomerModel customer) async {
     try {
       await _repository.updateCustomer(customer);
-      await loadCustomers();
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -61,7 +73,6 @@ class CustomerNotifier extends StateNotifier<AsyncValue<List<CustomerModel>>> {
   Future<void> deleteCustomer(String id) async {
     try {
       await _repository.deleteCustomer(id);
-      await loadCustomers();
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -70,25 +81,19 @@ class CustomerNotifier extends StateNotifier<AsyncValue<List<CustomerModel>>> {
   Future<void> toggleFavorite(String id, bool isFavorite) async {
     try {
       await _repository.toggleFavorite(id, isFavorite);
-      final currentList = state.value;
-      if (currentList != null) {
-        state = AsyncValue.data(
-          currentList.map((c) => c.id == id ? c.copyWith(isFavorite: isFavorite) : c).toList(),
-        );
-      }
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
   }
 
   void searchCustomers(String query) {
-    final currentList = state.value;
-    if (currentList == null) return;
-    
     if (query.isEmpty) {
-      loadCustomers();
+      _listenToCustomers();
       return;
     }
+
+    final currentList = state.value;
+    if (currentList == null) return;
 
     state = AsyncValue.data(
       currentList.where((c) => 

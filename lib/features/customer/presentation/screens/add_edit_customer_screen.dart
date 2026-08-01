@@ -81,25 +81,25 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
   }
 
   Future<void> _pickContact() async {
-    if (await Permission.contacts.request().isGranted) {
-      final contact = await FlutterContacts.openExternalPick();
-      if (contact != null) {
-        // Fetch full details since pick() might return partial data
-        final fullContact = await FlutterContacts.getContact(contact.id);
-        if (fullContact != null && fullContact.phones.isNotEmpty) {
-          setState(() {
-            _nameController.text = fullContact.displayName;
-            // Clean phone number (remove spaces, etc)
-            String phone = fullContact.phones.first.number.replaceAll(RegExp(r'\s+'), '');
-            _phoneController.text = phone;
-          });
-        }
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Contacts permission denied')),
-        );
+    // Note: showPicker() doesn't require READ_CONTACTS permission by default
+    final contact = await FlutterContacts.native.showPicker();
+    if (contact != null && contact.id != null) {
+      // Fetch full details
+      final fullContact = await FlutterContacts.get(
+        contact.id!, 
+        properties: {
+          ContactProperty.phone,
+          ContactProperty.name,
+          ContactProperty.address,
+        },
+      );
+      if (fullContact != null && fullContact.phones.isNotEmpty) {
+        setState(() {
+          _nameController.text = fullContact.displayName ?? '';
+          // Clean phone number (remove spaces, etc)
+          String phone = fullContact.phones.first.number.replaceAll(RegExp(r'\s+'), '');
+          _phoneController.text = phone;
+        });
       }
     }
   }

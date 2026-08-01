@@ -13,6 +13,7 @@ class TransactionChart extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final analytics = ref.watch(analyticsDataProvider);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     if (analytics == null) {
       return const SizedBox.shrink();
@@ -31,11 +32,11 @@ class TransactionChart extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: (isDarkMode ? Colors.black : Colors.black.withValues(alpha: 0.05)),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -52,7 +53,7 @@ class TransactionChart extends ConsumerWidget {
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary,
                 ),
               ),
               Container(
@@ -118,7 +119,7 @@ class TransactionChart extends ConsumerWidget {
                       day,
                       style: GoogleFonts.inter(
                         fontSize: 10,
-                        color: AppColors.textSecondary,
+                        color: isDarkMode ? AppColors.textSecondaryDark : AppColors.textSecondary,
                       ),
                     ))
                 .toList(),

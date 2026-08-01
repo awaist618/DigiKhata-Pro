@@ -10,7 +10,9 @@ class TransactionModel {
   final TransactionType type;
   final DateTime date;
   final String? imageUrl;
+  final String? localImagePath;
   final String? notes;
+  final String? tag;
 
   TransactionModel({
     required this.id,
@@ -22,7 +24,9 @@ class TransactionModel {
     required this.type,
     required this.date,
     this.imageUrl,
+    this.localImagePath,
     this.notes,
+    this.tag,
   });
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
@@ -36,7 +40,9 @@ class TransactionModel {
       type: json['type'] == 'credit' ? TransactionType.credit : TransactionType.debit,
       date: DateTime.parse(json['created_at']),
       imageUrl: json['image_url'],
+      localImagePath: json['local_image_path'],
       notes: json['notes'],
+      tag: json['tag'],
     );
   }
 
@@ -50,7 +56,9 @@ class TransactionModel {
       'type': type.name,
       'created_at': date.toIso8601String(),
       'image_url': imageUrl,
+      'local_image_path': localImagePath,
       'notes': notes,
+      'tag': tag,
     };
   }
 
@@ -64,7 +72,9 @@ class TransactionModel {
     TransactionType? type,
     DateTime? date,
     String? imageUrl,
+    String? localImagePath,
     String? notes,
+    String? tag,
   }) {
     return TransactionModel(
       id: id ?? this.id,
@@ -76,7 +86,9 @@ class TransactionModel {
       type: type ?? this.type,
       date: date ?? this.date,
       imageUrl: imageUrl ?? this.imageUrl,
+      localImagePath: localImagePath ?? this.localImagePath,
       notes: notes ?? this.notes,
+      tag: tag ?? this.tag,
     );
   }
 }

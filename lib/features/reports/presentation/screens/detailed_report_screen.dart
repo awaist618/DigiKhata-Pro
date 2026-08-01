@@ -10,6 +10,8 @@ import 'package:khataplus/core/providers/settings_provider.dart';
 import 'package:khataplus/features/business/presentation/providers/business_provider.dart';
 import 'package:khataplus/core/services/export_service.dart';
 
+import 'package:easy_localization/easy_localization.dart';
+
 class DetailedReportScreen extends ConsumerStatefulWidget {
   final String reportType;
   const DetailedReportScreen({super.key, required this.reportType});
@@ -39,7 +41,7 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Export Report', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18)),
+            Text('export_report'.tr(), style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18)),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -109,7 +111,7 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
           IconButton(
             icon: Icon(Icons.file_download_outlined, color: isDarkMode ? AppColors.skyBlue : AppColors.primaryBlue),
             onPressed: _handleExport,
-            tooltip: 'Export Report',
+            tooltip: 'export_report'.tr(),
           ),
           const SizedBox(width: 8),
         ],
@@ -125,7 +127,7 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
                 if (filteredTx.isEmpty) {
                   return Center(
                     child: Text(
-                      'No data found for the selected filters',
+                      'no_data_filters'.tr(),
                       style: TextStyle(color: isDarkMode ? Colors.white70 : AppColors.textSecondary),
                     ),
                   );
@@ -162,7 +164,7 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
                   onChanged: (val) => setState(() => _searchQuery = val),
                   style: TextStyle(color: isDarkMode ? Colors.white : AppColors.textPrimary),
                   decoration: InputDecoration(
-                    hintText: 'Search description...',
+                    hintText: 'search_desc'.tr(),
                     hintStyle: TextStyle(color: isDarkMode ? Colors.white60 : AppColors.textSecondary),
                     prefixIcon: Icon(Icons.search, size: 20, color: isDarkMode ? AppColors.skyBlue : AppColors.primaryBlue),
                     contentPadding: const EdgeInsets.symmetric(vertical: 0),

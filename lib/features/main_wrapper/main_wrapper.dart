@@ -60,7 +60,7 @@ class MainWrapper extends ConsumerWidget {
           elevation: 0,
           selectedIndex: selectedIndex,
           onDestinationSelected: (index) => ref.read(navIndexProvider.notifier).state = index,
-          backgroundColor: isDarkMode ? AppColors.logoNavyBottom : Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           indicatorColor: AppColors.primaryBlue.withValues(alpha: 0.1),
           labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
           destinations: [
@@ -77,7 +77,7 @@ class MainWrapper extends ConsumerWidget {
 
   NavigationDestination _buildNavDestination(IconData icon, String label, bool isDarkMode) {
     return NavigationDestination(
-      icon: Icon(icon, color: isDarkMode ? Colors.white60 : Colors.grey[600], size: 24),
+      icon: Icon(icon, color: isDarkMode ? AppColors.textSecondaryDark : Colors.grey[600], size: 24),
       selectedIcon: Icon(icon, color: AppColors.primaryBlue, size: 26),
       label: label,
     );

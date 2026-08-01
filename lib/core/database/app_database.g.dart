@@ -79,6 +79,18 @@ class $BusinessesTable extends Businesses
     requiredDuringInsert: false,
     defaultValue: const Constant('PKR'),
   );
+  static const VerificationMeta _lowBalanceThresholdMeta =
+      const VerificationMeta('lowBalanceThreshold');
+  @override
+  late final GeneratedColumn<double> lowBalanceThreshold =
+      GeneratedColumn<double>(
+        'low_balance_threshold',
+        aliasedName,
+        false,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(0.0),
+      );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -99,6 +111,7 @@ class $BusinessesTable extends Businesses
     phone,
     address,
     currency,
+    lowBalanceThreshold,
     createdAt,
   ];
   @override
@@ -158,6 +171,15 @@ class $BusinessesTable extends Businesses
         currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
       );
     }
+    if (data.containsKey('low_balance_threshold')) {
+      context.handle(
+        _lowBalanceThresholdMeta,
+        lowBalanceThreshold.isAcceptableOrUnknown(
+          data['low_balance_threshold']!,
+          _lowBalanceThresholdMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -203,6 +225,10 @@ class $BusinessesTable extends Businesses
         DriftSqlType.string,
         data['${effectivePrefix}currency'],
       )!,
+      lowBalanceThreshold: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}low_balance_threshold'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -224,6 +250,7 @@ class BusinessesData extends DataClass implements Insertable<BusinessesData> {
   final String? phone;
   final String? address;
   final String currency;
+  final double lowBalanceThreshold;
   final DateTime createdAt;
   const BusinessesData({
     required this.id,
@@ -233,6 +260,7 @@ class BusinessesData extends DataClass implements Insertable<BusinessesData> {
     this.phone,
     this.address,
     required this.currency,
+    required this.lowBalanceThreshold,
     required this.createdAt,
   });
   @override
@@ -251,6 +279,7 @@ class BusinessesData extends DataClass implements Insertable<BusinessesData> {
       map['address'] = Variable<String>(address);
     }
     map['currency'] = Variable<String>(currency);
+    map['low_balance_threshold'] = Variable<double>(lowBalanceThreshold);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -268,6 +297,7 @@ class BusinessesData extends DataClass implements Insertable<BusinessesData> {
           ? const Value.absent()
           : Value(address),
       currency: Value(currency),
+      lowBalanceThreshold: Value(lowBalanceThreshold),
       createdAt: Value(createdAt),
     );
   }
@@ -285,6 +315,9 @@ class BusinessesData extends DataClass implements Insertable<BusinessesData> {
       phone: serializer.fromJson<String?>(json['phone']),
       address: serializer.fromJson<String?>(json['address']),
       currency: serializer.fromJson<String>(json['currency']),
+      lowBalanceThreshold: serializer.fromJson<double>(
+        json['lowBalanceThreshold'],
+      ),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -299,6 +332,7 @@ class BusinessesData extends DataClass implements Insertable<BusinessesData> {
       'phone': serializer.toJson<String?>(phone),
       'address': serializer.toJson<String?>(address),
       'currency': serializer.toJson<String>(currency),
+      'lowBalanceThreshold': serializer.toJson<double>(lowBalanceThreshold),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -311,6 +345,7 @@ class BusinessesData extends DataClass implements Insertable<BusinessesData> {
     Value<String?> phone = const Value.absent(),
     Value<String?> address = const Value.absent(),
     String? currency,
+    double? lowBalanceThreshold,
     DateTime? createdAt,
   }) => BusinessesData(
     id: id ?? this.id,
@@ -320,6 +355,7 @@ class BusinessesData extends DataClass implements Insertable<BusinessesData> {
     phone: phone.present ? phone.value : this.phone,
     address: address.present ? address.value : this.address,
     currency: currency ?? this.currency,
+    lowBalanceThreshold: lowBalanceThreshold ?? this.lowBalanceThreshold,
     createdAt: createdAt ?? this.createdAt,
   );
   BusinessesData copyWithCompanion(BusinessesCompanion data) {
@@ -331,6 +367,9 @@ class BusinessesData extends DataClass implements Insertable<BusinessesData> {
       phone: data.phone.present ? data.phone.value : this.phone,
       address: data.address.present ? data.address.value : this.address,
       currency: data.currency.present ? data.currency.value : this.currency,
+      lowBalanceThreshold: data.lowBalanceThreshold.present
+          ? data.lowBalanceThreshold.value
+          : this.lowBalanceThreshold,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -345,14 +384,24 @@ class BusinessesData extends DataClass implements Insertable<BusinessesData> {
           ..write('phone: $phone, ')
           ..write('address: $address, ')
           ..write('currency: $currency, ')
+          ..write('lowBalanceThreshold: $lowBalanceThreshold, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, ownerId, name, type, phone, address, currency, createdAt);
+  int get hashCode => Object.hash(
+    id,
+    ownerId,
+    name,
+    type,
+    phone,
+    address,
+    currency,
+    lowBalanceThreshold,
+    createdAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -364,6 +413,7 @@ class BusinessesData extends DataClass implements Insertable<BusinessesData> {
           other.phone == this.phone &&
           other.address == this.address &&
           other.currency == this.currency &&
+          other.lowBalanceThreshold == this.lowBalanceThreshold &&
           other.createdAt == this.createdAt);
 }
 
@@ -375,6 +425,7 @@ class BusinessesCompanion extends UpdateCompanion<BusinessesData> {
   final Value<String?> phone;
   final Value<String?> address;
   final Value<String> currency;
+  final Value<double> lowBalanceThreshold;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const BusinessesCompanion({
@@ -385,6 +436,7 @@ class BusinessesCompanion extends UpdateCompanion<BusinessesData> {
     this.phone = const Value.absent(),
     this.address = const Value.absent(),
     this.currency = const Value.absent(),
+    this.lowBalanceThreshold = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -396,6 +448,7 @@ class BusinessesCompanion extends UpdateCompanion<BusinessesData> {
     this.phone = const Value.absent(),
     this.address = const Value.absent(),
     this.currency = const Value.absent(),
+    this.lowBalanceThreshold = const Value.absent(),
     required DateTime createdAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -410,6 +463,7 @@ class BusinessesCompanion extends UpdateCompanion<BusinessesData> {
     Expression<String>? phone,
     Expression<String>? address,
     Expression<String>? currency,
+    Expression<double>? lowBalanceThreshold,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -421,6 +475,8 @@ class BusinessesCompanion extends UpdateCompanion<BusinessesData> {
       if (phone != null) 'phone': phone,
       if (address != null) 'address': address,
       if (currency != null) 'currency': currency,
+      if (lowBalanceThreshold != null)
+        'low_balance_threshold': lowBalanceThreshold,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -434,6 +490,7 @@ class BusinessesCompanion extends UpdateCompanion<BusinessesData> {
     Value<String?>? phone,
     Value<String?>? address,
     Value<String>? currency,
+    Value<double>? lowBalanceThreshold,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
@@ -445,6 +502,7 @@ class BusinessesCompanion extends UpdateCompanion<BusinessesData> {
       phone: phone ?? this.phone,
       address: address ?? this.address,
       currency: currency ?? this.currency,
+      lowBalanceThreshold: lowBalanceThreshold ?? this.lowBalanceThreshold,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -474,6 +532,11 @@ class BusinessesCompanion extends UpdateCompanion<BusinessesData> {
     if (currency.present) {
       map['currency'] = Variable<String>(currency.value);
     }
+    if (lowBalanceThreshold.present) {
+      map['low_balance_threshold'] = Variable<double>(
+        lowBalanceThreshold.value,
+      );
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -493,6 +556,7 @@ class BusinessesCompanion extends UpdateCompanion<BusinessesData> {
           ..write('phone: $phone, ')
           ..write('address: $address, ')
           ..write('currency: $currency, ')
+          ..write('lowBalanceThreshold: $lowBalanceThreshold, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1873,10 +1937,30 @@ class $TransactionsTable extends Transactions
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _localImagePathMeta = const VerificationMeta(
+    'localImagePath',
+  );
+  @override
+  late final GeneratedColumn<String> localImagePath = GeneratedColumn<String>(
+    'local_image_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
   @override
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
     'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _tagMeta = const VerificationMeta('tag');
+  @override
+  late final GeneratedColumn<String> tag = GeneratedColumn<String>(
+    'tag',
     aliasedName,
     true,
     type: DriftSqlType.string,
@@ -1893,7 +1977,9 @@ class $TransactionsTable extends Transactions
     type,
     createdAt,
     imageUrl,
+    localImagePath,
     notes,
+    tag,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1971,10 +2057,25 @@ class $TransactionsTable extends Transactions
         imageUrl.isAcceptableOrUnknown(data['image_url']!, _imageUrlMeta),
       );
     }
+    if (data.containsKey('local_image_path')) {
+      context.handle(
+        _localImagePathMeta,
+        localImagePath.isAcceptableOrUnknown(
+          data['local_image_path']!,
+          _localImagePathMeta,
+        ),
+      );
+    }
     if (data.containsKey('notes')) {
       context.handle(
         _notesMeta,
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('tag')) {
+      context.handle(
+        _tagMeta,
+        tag.isAcceptableOrUnknown(data['tag']!, _tagMeta),
       );
     }
     return context;
@@ -2022,9 +2123,17 @@ class $TransactionsTable extends Transactions
         DriftSqlType.string,
         data['${effectivePrefix}image_url'],
       ),
+      localImagePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_image_path'],
+      ),
       notes: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
+      ),
+      tag: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tag'],
       ),
     );
   }
@@ -2045,7 +2154,9 @@ class Transaction extends DataClass implements Insertable<Transaction> {
   final String type;
   final DateTime createdAt;
   final String? imageUrl;
+  final String? localImagePath;
   final String? notes;
+  final String? tag;
   const Transaction({
     required this.id,
     required this.businessId,
@@ -2056,7 +2167,9 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     required this.type,
     required this.createdAt,
     this.imageUrl,
+    this.localImagePath,
     this.notes,
+    this.tag,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2078,8 +2191,14 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     if (!nullToAbsent || imageUrl != null) {
       map['image_url'] = Variable<String>(imageUrl);
     }
+    if (!nullToAbsent || localImagePath != null) {
+      map['local_image_path'] = Variable<String>(localImagePath);
+    }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || tag != null) {
+      map['tag'] = Variable<String>(tag);
     }
     return map;
   }
@@ -2103,9 +2222,13 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       imageUrl: imageUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(imageUrl),
+      localImagePath: localImagePath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localImagePath),
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
+      tag: tag == null && nullToAbsent ? const Value.absent() : Value(tag),
     );
   }
 
@@ -2124,7 +2247,9 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       type: serializer.fromJson<String>(json['type']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       imageUrl: serializer.fromJson<String?>(json['imageUrl']),
+      localImagePath: serializer.fromJson<String?>(json['localImagePath']),
       notes: serializer.fromJson<String?>(json['notes']),
+      tag: serializer.fromJson<String?>(json['tag']),
     );
   }
   @override
@@ -2140,7 +2265,9 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       'type': serializer.toJson<String>(type),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'imageUrl': serializer.toJson<String?>(imageUrl),
+      'localImagePath': serializer.toJson<String?>(localImagePath),
       'notes': serializer.toJson<String?>(notes),
+      'tag': serializer.toJson<String?>(tag),
     };
   }
 
@@ -2154,7 +2281,9 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     String? type,
     DateTime? createdAt,
     Value<String?> imageUrl = const Value.absent(),
+    Value<String?> localImagePath = const Value.absent(),
     Value<String?> notes = const Value.absent(),
+    Value<String?> tag = const Value.absent(),
   }) => Transaction(
     id: id ?? this.id,
     businessId: businessId ?? this.businessId,
@@ -2165,7 +2294,11 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     type: type ?? this.type,
     createdAt: createdAt ?? this.createdAt,
     imageUrl: imageUrl.present ? imageUrl.value : this.imageUrl,
+    localImagePath: localImagePath.present
+        ? localImagePath.value
+        : this.localImagePath,
     notes: notes.present ? notes.value : this.notes,
+    tag: tag.present ? tag.value : this.tag,
   );
   Transaction copyWithCompanion(TransactionsCompanion data) {
     return Transaction(
@@ -2186,7 +2319,11 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       type: data.type.present ? data.type.value : this.type,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       imageUrl: data.imageUrl.present ? data.imageUrl.value : this.imageUrl,
+      localImagePath: data.localImagePath.present
+          ? data.localImagePath.value
+          : this.localImagePath,
       notes: data.notes.present ? data.notes.value : this.notes,
+      tag: data.tag.present ? data.tag.value : this.tag,
     );
   }
 
@@ -2202,7 +2339,9 @@ class Transaction extends DataClass implements Insertable<Transaction> {
           ..write('type: $type, ')
           ..write('createdAt: $createdAt, ')
           ..write('imageUrl: $imageUrl, ')
-          ..write('notes: $notes')
+          ..write('localImagePath: $localImagePath, ')
+          ..write('notes: $notes, ')
+          ..write('tag: $tag')
           ..write(')'))
         .toString();
   }
@@ -2218,7 +2357,9 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     type,
     createdAt,
     imageUrl,
+    localImagePath,
     notes,
+    tag,
   );
   @override
   bool operator ==(Object other) =>
@@ -2233,7 +2374,9 @@ class Transaction extends DataClass implements Insertable<Transaction> {
           other.type == this.type &&
           other.createdAt == this.createdAt &&
           other.imageUrl == this.imageUrl &&
-          other.notes == this.notes);
+          other.localImagePath == this.localImagePath &&
+          other.notes == this.notes &&
+          other.tag == this.tag);
 }
 
 class TransactionsCompanion extends UpdateCompanion<Transaction> {
@@ -2246,7 +2389,9 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
   final Value<String> type;
   final Value<DateTime> createdAt;
   final Value<String?> imageUrl;
+  final Value<String?> localImagePath;
   final Value<String?> notes;
+  final Value<String?> tag;
   final Value<int> rowid;
   const TransactionsCompanion({
     this.id = const Value.absent(),
@@ -2258,7 +2403,9 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     this.type = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.imageUrl = const Value.absent(),
+    this.localImagePath = const Value.absent(),
     this.notes = const Value.absent(),
+    this.tag = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   TransactionsCompanion.insert({
@@ -2271,7 +2418,9 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     required String type,
     required DateTime createdAt,
     this.imageUrl = const Value.absent(),
+    this.localImagePath = const Value.absent(),
     this.notes = const Value.absent(),
+    this.tag = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        businessId = Value(businessId),
@@ -2288,7 +2437,9 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     Expression<String>? type,
     Expression<DateTime>? createdAt,
     Expression<String>? imageUrl,
+    Expression<String>? localImagePath,
     Expression<String>? notes,
+    Expression<String>? tag,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2301,7 +2452,9 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
       if (type != null) 'type': type,
       if (createdAt != null) 'created_at': createdAt,
       if (imageUrl != null) 'image_url': imageUrl,
+      if (localImagePath != null) 'local_image_path': localImagePath,
       if (notes != null) 'notes': notes,
+      if (tag != null) 'tag': tag,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2316,7 +2469,9 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     Value<String>? type,
     Value<DateTime>? createdAt,
     Value<String?>? imageUrl,
+    Value<String?>? localImagePath,
     Value<String?>? notes,
+    Value<String?>? tag,
     Value<int>? rowid,
   }) {
     return TransactionsCompanion(
@@ -2329,7 +2484,9 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
       type: type ?? this.type,
       createdAt: createdAt ?? this.createdAt,
       imageUrl: imageUrl ?? this.imageUrl,
+      localImagePath: localImagePath ?? this.localImagePath,
       notes: notes ?? this.notes,
+      tag: tag ?? this.tag,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2364,8 +2521,14 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     if (imageUrl.present) {
       map['image_url'] = Variable<String>(imageUrl.value);
     }
+    if (localImagePath.present) {
+      map['local_image_path'] = Variable<String>(localImagePath.value);
+    }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
+    }
+    if (tag.present) {
+      map['tag'] = Variable<String>(tag.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -2385,7 +2548,9 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
           ..write('type: $type, ')
           ..write('createdAt: $createdAt, ')
           ..write('imageUrl: $imageUrl, ')
+          ..write('localImagePath: $localImagePath, ')
           ..write('notes: $notes, ')
+          ..write('tag: $tag, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3140,6 +3305,399 @@ class LinkedBusinessesCompanion extends UpdateCompanion<LinkedBusiness> {
   }
 }
 
+class $LocalNotificationsTable extends LocalNotifications
+    with TableInfo<$LocalNotificationsTable, LocalNotification> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LocalNotificationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isReadMeta = const VerificationMeta('isRead');
+  @override
+  late final GeneratedColumn<bool> isRead = GeneratedColumn<bool>(
+    'is_read',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_read" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    title,
+    body,
+    type,
+    createdAt,
+    isRead,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'local_notifications';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LocalNotification> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('is_read')) {
+      context.handle(
+        _isReadMeta,
+        isRead.isAcceptableOrUnknown(data['is_read']!, _isReadMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  LocalNotification map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LocalNotification(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      isRead: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_read'],
+      )!,
+    );
+  }
+
+  @override
+  $LocalNotificationsTable createAlias(String alias) {
+    return $LocalNotificationsTable(attachedDatabase, alias);
+  }
+}
+
+class LocalNotification extends DataClass
+    implements Insertable<LocalNotification> {
+  final int id;
+  final String title;
+  final String body;
+  final String type;
+  final DateTime createdAt;
+  final bool isRead;
+  const LocalNotification({
+    required this.id,
+    required this.title,
+    required this.body,
+    required this.type,
+    required this.createdAt,
+    required this.isRead,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['title'] = Variable<String>(title);
+    map['body'] = Variable<String>(body);
+    map['type'] = Variable<String>(type);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['is_read'] = Variable<bool>(isRead);
+    return map;
+  }
+
+  LocalNotificationsCompanion toCompanion(bool nullToAbsent) {
+    return LocalNotificationsCompanion(
+      id: Value(id),
+      title: Value(title),
+      body: Value(body),
+      type: Value(type),
+      createdAt: Value(createdAt),
+      isRead: Value(isRead),
+    );
+  }
+
+  factory LocalNotification.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LocalNotification(
+      id: serializer.fromJson<int>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      body: serializer.fromJson<String>(json['body']),
+      type: serializer.fromJson<String>(json['type']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      isRead: serializer.fromJson<bool>(json['isRead']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'title': serializer.toJson<String>(title),
+      'body': serializer.toJson<String>(body),
+      'type': serializer.toJson<String>(type),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'isRead': serializer.toJson<bool>(isRead),
+    };
+  }
+
+  LocalNotification copyWith({
+    int? id,
+    String? title,
+    String? body,
+    String? type,
+    DateTime? createdAt,
+    bool? isRead,
+  }) => LocalNotification(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    body: body ?? this.body,
+    type: type ?? this.type,
+    createdAt: createdAt ?? this.createdAt,
+    isRead: isRead ?? this.isRead,
+  );
+  LocalNotification copyWithCompanion(LocalNotificationsCompanion data) {
+    return LocalNotification(
+      id: data.id.present ? data.id.value : this.id,
+      title: data.title.present ? data.title.value : this.title,
+      body: data.body.present ? data.body.value : this.body,
+      type: data.type.present ? data.type.value : this.type,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      isRead: data.isRead.present ? data.isRead.value : this.isRead,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalNotification(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('type: $type, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('isRead: $isRead')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, title, body, type, createdAt, isRead);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LocalNotification &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.body == this.body &&
+          other.type == this.type &&
+          other.createdAt == this.createdAt &&
+          other.isRead == this.isRead);
+}
+
+class LocalNotificationsCompanion extends UpdateCompanion<LocalNotification> {
+  final Value<int> id;
+  final Value<String> title;
+  final Value<String> body;
+  final Value<String> type;
+  final Value<DateTime> createdAt;
+  final Value<bool> isRead;
+  const LocalNotificationsCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.body = const Value.absent(),
+    this.type = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.isRead = const Value.absent(),
+  });
+  LocalNotificationsCompanion.insert({
+    this.id = const Value.absent(),
+    required String title,
+    required String body,
+    required String type,
+    required DateTime createdAt,
+    this.isRead = const Value.absent(),
+  }) : title = Value(title),
+       body = Value(body),
+       type = Value(type),
+       createdAt = Value(createdAt);
+  static Insertable<LocalNotification> custom({
+    Expression<int>? id,
+    Expression<String>? title,
+    Expression<String>? body,
+    Expression<String>? type,
+    Expression<DateTime>? createdAt,
+    Expression<bool>? isRead,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (body != null) 'body': body,
+      if (type != null) 'type': type,
+      if (createdAt != null) 'created_at': createdAt,
+      if (isRead != null) 'is_read': isRead,
+    });
+  }
+
+  LocalNotificationsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? title,
+    Value<String>? body,
+    Value<String>? type,
+    Value<DateTime>? createdAt,
+    Value<bool>? isRead,
+  }) {
+    return LocalNotificationsCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      type: type ?? this.type,
+      createdAt: createdAt ?? this.createdAt,
+      isRead: isRead ?? this.isRead,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (isRead.present) {
+      map['is_read'] = Variable<bool>(isRead.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalNotificationsCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('type: $type, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('isRead: $isRead')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3151,6 +3709,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $LinkedBusinessesTable linkedBusinesses = $LinkedBusinessesTable(
     this,
   );
+  late final $LocalNotificationsTable localNotifications =
+      $LocalNotificationsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3162,6 +3722,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     transactions,
     syncQueue,
     linkedBusinesses,
+    localNotifications,
   ];
 }
 
@@ -3174,6 +3735,7 @@ typedef $$BusinessesTableCreateCompanionBuilder =
       Value<String?> phone,
       Value<String?> address,
       Value<String> currency,
+      Value<double> lowBalanceThreshold,
       required DateTime createdAt,
       Value<int> rowid,
     });
@@ -3186,6 +3748,7 @@ typedef $$BusinessesTableUpdateCompanionBuilder =
       Value<String?> phone,
       Value<String?> address,
       Value<String> currency,
+      Value<double> lowBalanceThreshold,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -3290,6 +3853,11 @@ class $$BusinessesTableFilterComposer
 
   ColumnFilters<String> get currency => $composableBuilder(
     column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get lowBalanceThreshold => $composableBuilder(
+    column: $table.lowBalanceThreshold,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3418,6 +3986,11 @@ class $$BusinessesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get lowBalanceThreshold => $composableBuilder(
+    column: $table.lowBalanceThreshold,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -3453,6 +4026,11 @@ class $$BusinessesTableAnnotationComposer
 
   GeneratedColumn<String> get currency =>
       $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<double> get lowBalanceThreshold => $composableBuilder(
+    column: $table.lowBalanceThreshold,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -3572,6 +4150,7 @@ class $$BusinessesTableTableManager
                 Value<String?> phone = const Value.absent(),
                 Value<String?> address = const Value.absent(),
                 Value<String> currency = const Value.absent(),
+                Value<double> lowBalanceThreshold = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => BusinessesCompanion(
@@ -3582,6 +4161,7 @@ class $$BusinessesTableTableManager
                 phone: phone,
                 address: address,
                 currency: currency,
+                lowBalanceThreshold: lowBalanceThreshold,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -3594,6 +4174,7 @@ class $$BusinessesTableTableManager
                 Value<String?> phone = const Value.absent(),
                 Value<String?> address = const Value.absent(),
                 Value<String> currency = const Value.absent(),
+                Value<double> lowBalanceThreshold = const Value.absent(),
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
               }) => BusinessesCompanion.insert(
@@ -3604,6 +4185,7 @@ class $$BusinessesTableTableManager
                 phone: phone,
                 address: address,
                 currency: currency,
+                lowBalanceThreshold: lowBalanceThreshold,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -4762,7 +5344,9 @@ typedef $$TransactionsTableCreateCompanionBuilder =
       required String type,
       required DateTime createdAt,
       Value<String?> imageUrl,
+      Value<String?> localImagePath,
       Value<String?> notes,
+      Value<String?> tag,
       Value<int> rowid,
     });
 typedef $$TransactionsTableUpdateCompanionBuilder =
@@ -4776,7 +5360,9 @@ typedef $$TransactionsTableUpdateCompanionBuilder =
       Value<String> type,
       Value<DateTime> createdAt,
       Value<String?> imageUrl,
+      Value<String?> localImagePath,
       Value<String?> notes,
+      Value<String?> tag,
       Value<int> rowid,
     });
 
@@ -4875,8 +5461,18 @@ class $$TransactionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get localImagePath => $composableBuilder(
+    column: $table.localImagePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tag => $composableBuilder(
+    column: $table.tag,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4989,8 +5585,18 @@ class $$TransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get localImagePath => $composableBuilder(
+    column: $table.localImagePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tag => $composableBuilder(
+    column: $table.tag,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -5093,8 +5699,16 @@ class $$TransactionsTableAnnotationComposer
   GeneratedColumn<String> get imageUrl =>
       $composableBuilder(column: $table.imageUrl, builder: (column) => column);
 
+  GeneratedColumn<String> get localImagePath => $composableBuilder(
+    column: $table.localImagePath,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get tag =>
+      $composableBuilder(column: $table.tag, builder: (column) => column);
 
   $$BusinessesTableAnnotationComposer get businessId {
     final $$BusinessesTableAnnotationComposer composer = $composerBuilder(
@@ -5207,7 +5821,9 @@ class $$TransactionsTableTableManager
                 Value<String> type = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<String?> imageUrl = const Value.absent(),
+                Value<String?> localImagePath = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<String?> tag = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TransactionsCompanion(
                 id: id,
@@ -5219,7 +5835,9 @@ class $$TransactionsTableTableManager
                 type: type,
                 createdAt: createdAt,
                 imageUrl: imageUrl,
+                localImagePath: localImagePath,
                 notes: notes,
+                tag: tag,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -5233,7 +5851,9 @@ class $$TransactionsTableTableManager
                 required String type,
                 required DateTime createdAt,
                 Value<String?> imageUrl = const Value.absent(),
+                Value<String?> localImagePath = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<String?> tag = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TransactionsCompanion.insert(
                 id: id,
@@ -5245,7 +5865,9 @@ class $$TransactionsTableTableManager
                 type: type,
                 createdAt: createdAt,
                 imageUrl: imageUrl,
+                localImagePath: localImagePath,
                 notes: notes,
+                tag: tag,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -5773,6 +6395,232 @@ typedef $$LinkedBusinessesTableProcessedTableManager =
       LinkedBusiness,
       PrefetchHooks Function()
     >;
+typedef $$LocalNotificationsTableCreateCompanionBuilder =
+    LocalNotificationsCompanion Function({
+      Value<int> id,
+      required String title,
+      required String body,
+      required String type,
+      required DateTime createdAt,
+      Value<bool> isRead,
+    });
+typedef $$LocalNotificationsTableUpdateCompanionBuilder =
+    LocalNotificationsCompanion Function({
+      Value<int> id,
+      Value<String> title,
+      Value<String> body,
+      Value<String> type,
+      Value<DateTime> createdAt,
+      Value<bool> isRead,
+    });
+
+class $$LocalNotificationsTableFilterComposer
+    extends Composer<_$AppDatabase, $LocalNotificationsTable> {
+  $$LocalNotificationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isRead => $composableBuilder(
+    column: $table.isRead,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$LocalNotificationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $LocalNotificationsTable> {
+  $$LocalNotificationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isRead => $composableBuilder(
+    column: $table.isRead,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LocalNotificationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LocalNotificationsTable> {
+  $$LocalNotificationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isRead =>
+      $composableBuilder(column: $table.isRead, builder: (column) => column);
+}
+
+class $$LocalNotificationsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LocalNotificationsTable,
+          LocalNotification,
+          $$LocalNotificationsTableFilterComposer,
+          $$LocalNotificationsTableOrderingComposer,
+          $$LocalNotificationsTableAnnotationComposer,
+          $$LocalNotificationsTableCreateCompanionBuilder,
+          $$LocalNotificationsTableUpdateCompanionBuilder,
+          (
+            LocalNotification,
+            BaseReferences<
+              _$AppDatabase,
+              $LocalNotificationsTable,
+              LocalNotification
+            >,
+          ),
+          LocalNotification,
+          PrefetchHooks Function()
+        > {
+  $$LocalNotificationsTableTableManager(
+    _$AppDatabase db,
+    $LocalNotificationsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LocalNotificationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LocalNotificationsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LocalNotificationsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> body = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<bool> isRead = const Value.absent(),
+              }) => LocalNotificationsCompanion(
+                id: id,
+                title: title,
+                body: body,
+                type: type,
+                createdAt: createdAt,
+                isRead: isRead,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String title,
+                required String body,
+                required String type,
+                required DateTime createdAt,
+                Value<bool> isRead = const Value.absent(),
+              }) => LocalNotificationsCompanion.insert(
+                id: id,
+                title: title,
+                body: body,
+                type: type,
+                createdAt: createdAt,
+                isRead: isRead,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$LocalNotificationsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LocalNotificationsTable,
+      LocalNotification,
+      $$LocalNotificationsTableFilterComposer,
+      $$LocalNotificationsTableOrderingComposer,
+      $$LocalNotificationsTableAnnotationComposer,
+      $$LocalNotificationsTableCreateCompanionBuilder,
+      $$LocalNotificationsTableUpdateCompanionBuilder,
+      (
+        LocalNotification,
+        BaseReferences<
+          _$AppDatabase,
+          $LocalNotificationsTable,
+          LocalNotification
+        >,
+      ),
+      LocalNotification,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -5789,4 +6637,6 @@ class $AppDatabaseManager {
       $$SyncQueueTableTableManager(_db, _db.syncQueue);
   $$LinkedBusinessesTableTableManager get linkedBusinesses =>
       $$LinkedBusinessesTableTableManager(_db, _db.linkedBusinesses);
+  $$LocalNotificationsTableTableManager get localNotifications =>
+      $$LocalNotificationsTableTableManager(_db, _db.localNotifications);
 }
