@@ -2790,6 +2790,356 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
   }
 }
 
+class $LinkedBusinessesTable extends LinkedBusinesses
+    with TableInfo<$LinkedBusinessesTable, LinkedBusiness> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LinkedBusinessesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _phoneMeta = const VerificationMeta('phone');
+  @override
+  late final GeneratedColumn<String> phone = GeneratedColumn<String>(
+    'phone',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _linkedAtMeta = const VerificationMeta(
+    'linkedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> linkedAt = GeneratedColumn<DateTime>(
+    'linked_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, type, phone, linkedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'linked_businesses';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LinkedBusiness> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    }
+    if (data.containsKey('phone')) {
+      context.handle(
+        _phoneMeta,
+        phone.isAcceptableOrUnknown(data['phone']!, _phoneMeta),
+      );
+    }
+    if (data.containsKey('linked_at')) {
+      context.handle(
+        _linkedAtMeta,
+        linkedAt.isAcceptableOrUnknown(data['linked_at']!, _linkedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_linkedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  LinkedBusiness map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LinkedBusiness(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      ),
+      phone: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phone'],
+      ),
+      linkedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}linked_at'],
+      )!,
+    );
+  }
+
+  @override
+  $LinkedBusinessesTable createAlias(String alias) {
+    return $LinkedBusinessesTable(attachedDatabase, alias);
+  }
+}
+
+class LinkedBusiness extends DataClass implements Insertable<LinkedBusiness> {
+  final String id;
+  final String name;
+  final String? type;
+  final String? phone;
+  final DateTime linkedAt;
+  const LinkedBusiness({
+    required this.id,
+    required this.name,
+    this.type,
+    this.phone,
+    required this.linkedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || type != null) {
+      map['type'] = Variable<String>(type);
+    }
+    if (!nullToAbsent || phone != null) {
+      map['phone'] = Variable<String>(phone);
+    }
+    map['linked_at'] = Variable<DateTime>(linkedAt);
+    return map;
+  }
+
+  LinkedBusinessesCompanion toCompanion(bool nullToAbsent) {
+    return LinkedBusinessesCompanion(
+      id: Value(id),
+      name: Value(name),
+      type: type == null && nullToAbsent ? const Value.absent() : Value(type),
+      phone: phone == null && nullToAbsent
+          ? const Value.absent()
+          : Value(phone),
+      linkedAt: Value(linkedAt),
+    );
+  }
+
+  factory LinkedBusiness.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LinkedBusiness(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      type: serializer.fromJson<String?>(json['type']),
+      phone: serializer.fromJson<String?>(json['phone']),
+      linkedAt: serializer.fromJson<DateTime>(json['linkedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'type': serializer.toJson<String?>(type),
+      'phone': serializer.toJson<String?>(phone),
+      'linkedAt': serializer.toJson<DateTime>(linkedAt),
+    };
+  }
+
+  LinkedBusiness copyWith({
+    String? id,
+    String? name,
+    Value<String?> type = const Value.absent(),
+    Value<String?> phone = const Value.absent(),
+    DateTime? linkedAt,
+  }) => LinkedBusiness(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    type: type.present ? type.value : this.type,
+    phone: phone.present ? phone.value : this.phone,
+    linkedAt: linkedAt ?? this.linkedAt,
+  );
+  LinkedBusiness copyWithCompanion(LinkedBusinessesCompanion data) {
+    return LinkedBusiness(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      type: data.type.present ? data.type.value : this.type,
+      phone: data.phone.present ? data.phone.value : this.phone,
+      linkedAt: data.linkedAt.present ? data.linkedAt.value : this.linkedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LinkedBusiness(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('type: $type, ')
+          ..write('phone: $phone, ')
+          ..write('linkedAt: $linkedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, type, phone, linkedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LinkedBusiness &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.type == this.type &&
+          other.phone == this.phone &&
+          other.linkedAt == this.linkedAt);
+}
+
+class LinkedBusinessesCompanion extends UpdateCompanion<LinkedBusiness> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String?> type;
+  final Value<String?> phone;
+  final Value<DateTime> linkedAt;
+  final Value<int> rowid;
+  const LinkedBusinessesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.type = const Value.absent(),
+    this.phone = const Value.absent(),
+    this.linkedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LinkedBusinessesCompanion.insert({
+    required String id,
+    required String name,
+    this.type = const Value.absent(),
+    this.phone = const Value.absent(),
+    required DateTime linkedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name),
+       linkedAt = Value(linkedAt);
+  static Insertable<LinkedBusiness> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? type,
+    Expression<String>? phone,
+    Expression<DateTime>? linkedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (type != null) 'type': type,
+      if (phone != null) 'phone': phone,
+      if (linkedAt != null) 'linked_at': linkedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LinkedBusinessesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String?>? type,
+    Value<String?>? phone,
+    Value<DateTime>? linkedAt,
+    Value<int>? rowid,
+  }) {
+    return LinkedBusinessesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      type: type ?? this.type,
+      phone: phone ?? this.phone,
+      linkedAt: linkedAt ?? this.linkedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (phone.present) {
+      map['phone'] = Variable<String>(phone.value);
+    }
+    if (linkedAt.present) {
+      map['linked_at'] = Variable<DateTime>(linkedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LinkedBusinessesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('type: $type, ')
+          ..write('phone: $phone, ')
+          ..write('linkedAt: $linkedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2798,6 +3148,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SuppliersTable suppliers = $SuppliersTable(this);
   late final $TransactionsTable transactions = $TransactionsTable(this);
   late final $SyncQueueTable syncQueue = $SyncQueueTable(this);
+  late final $LinkedBusinessesTable linkedBusinesses = $LinkedBusinessesTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2808,6 +3161,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     suppliers,
     transactions,
     syncQueue,
+    linkedBusinesses,
   ];
 }
 
@@ -5213,6 +5567,212 @@ typedef $$SyncQueueTableProcessedTableManager =
       SyncQueueData,
       PrefetchHooks Function()
     >;
+typedef $$LinkedBusinessesTableCreateCompanionBuilder =
+    LinkedBusinessesCompanion Function({
+      required String id,
+      required String name,
+      Value<String?> type,
+      Value<String?> phone,
+      required DateTime linkedAt,
+      Value<int> rowid,
+    });
+typedef $$LinkedBusinessesTableUpdateCompanionBuilder =
+    LinkedBusinessesCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String?> type,
+      Value<String?> phone,
+      Value<DateTime> linkedAt,
+      Value<int> rowid,
+    });
+
+class $$LinkedBusinessesTableFilterComposer
+    extends Composer<_$AppDatabase, $LinkedBusinessesTable> {
+  $$LinkedBusinessesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get phone => $composableBuilder(
+    column: $table.phone,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get linkedAt => $composableBuilder(
+    column: $table.linkedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$LinkedBusinessesTableOrderingComposer
+    extends Composer<_$AppDatabase, $LinkedBusinessesTable> {
+  $$LinkedBusinessesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get phone => $composableBuilder(
+    column: $table.phone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get linkedAt => $composableBuilder(
+    column: $table.linkedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LinkedBusinessesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LinkedBusinessesTable> {
+  $$LinkedBusinessesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get phone =>
+      $composableBuilder(column: $table.phone, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get linkedAt =>
+      $composableBuilder(column: $table.linkedAt, builder: (column) => column);
+}
+
+class $$LinkedBusinessesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LinkedBusinessesTable,
+          LinkedBusiness,
+          $$LinkedBusinessesTableFilterComposer,
+          $$LinkedBusinessesTableOrderingComposer,
+          $$LinkedBusinessesTableAnnotationComposer,
+          $$LinkedBusinessesTableCreateCompanionBuilder,
+          $$LinkedBusinessesTableUpdateCompanionBuilder,
+          (
+            LinkedBusiness,
+            BaseReferences<
+              _$AppDatabase,
+              $LinkedBusinessesTable,
+              LinkedBusiness
+            >,
+          ),
+          LinkedBusiness,
+          PrefetchHooks Function()
+        > {
+  $$LinkedBusinessesTableTableManager(
+    _$AppDatabase db,
+    $LinkedBusinessesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LinkedBusinessesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LinkedBusinessesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LinkedBusinessesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> type = const Value.absent(),
+                Value<String?> phone = const Value.absent(),
+                Value<DateTime> linkedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LinkedBusinessesCompanion(
+                id: id,
+                name: name,
+                type: type,
+                phone: phone,
+                linkedAt: linkedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                Value<String?> type = const Value.absent(),
+                Value<String?> phone = const Value.absent(),
+                required DateTime linkedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => LinkedBusinessesCompanion.insert(
+                id: id,
+                name: name,
+                type: type,
+                phone: phone,
+                linkedAt: linkedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$LinkedBusinessesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LinkedBusinessesTable,
+      LinkedBusiness,
+      $$LinkedBusinessesTableFilterComposer,
+      $$LinkedBusinessesTableOrderingComposer,
+      $$LinkedBusinessesTableAnnotationComposer,
+      $$LinkedBusinessesTableCreateCompanionBuilder,
+      $$LinkedBusinessesTableUpdateCompanionBuilder,
+      (
+        LinkedBusiness,
+        BaseReferences<_$AppDatabase, $LinkedBusinessesTable, LinkedBusiness>,
+      ),
+      LinkedBusiness,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -5227,4 +5787,6 @@ class $AppDatabaseManager {
       $$TransactionsTableTableManager(_db, _db.transactions);
   $$SyncQueueTableTableManager get syncQueue =>
       $$SyncQueueTableTableManager(_db, _db.syncQueue);
+  $$LinkedBusinessesTableTableManager get linkedBusinesses =>
+      $$LinkedBusinessesTableTableManager(_db, _db.linkedBusinesses);
 }

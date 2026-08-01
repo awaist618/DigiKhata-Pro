@@ -3,9 +3,18 @@ import 'package:khataplus/core/services/supabase_service.dart';
 import '../../data/models/business_model.dart';
 import '../../data/repositories/business_repository.dart';
 
+import 'package:khataplus/core/providers/database_provider.dart';
+import '../../data/repositories/linked_business_repository.dart';
+
 final businessRepositoryProvider = Provider<BusinessRepository>((ref) {
   final supabase = ref.watch(supabaseServiceProvider);
   return BusinessRepository(supabase.client);
+});
+
+final linkedBusinessRepositoryProvider = Provider<LinkedBusinessRepository>((ref) {
+  final supabase = ref.watch(supabaseServiceProvider);
+  final db = ref.watch(databaseProvider);
+  return LinkedBusinessRepository(supabase.client, db);
 });
 
 final selectedBusinessIdProvider = StateProvider<String?>((ref) => null);

@@ -14,10 +14,18 @@ class Businesses extends Table {
   TextColumn get phone => text().nullable()();
   TextColumn get address => text().nullable()();
   TextColumn get currency => text().withDefault(const Constant('PKR'))();
+  RealColumn get lowBalanceThreshold => real().withDefault(const Constant(0.0))();
   DateTimeColumn get createdAt => dateTime()();
 
   @override
   Set<Column> get primaryKey => {id};
+}
+
+class TransactionTags extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get businessId => text().references(Businesses, #id)();
+  TextColumn get name => text()();
+  TextColumn get color => text().nullable()(); // Hex color
 }
 
 class Customers extends Table {
@@ -63,7 +71,9 @@ class Transactions extends Table {
   TextColumn get type => text()(); // credit, debit
   DateTimeColumn get createdAt => dateTime()();
   TextColumn get imageUrl => text().nullable()();
+  TextColumn get localImagePath => text().nullable()();
   TextColumn get notes => text().nullable()();
+  TextColumn get tag => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -78,7 +88,19 @@ class SyncQueue extends Table {
   DateTimeColumn get createdAt => dateTime()();
 }
 
-@DriftDatabase(tables: [Businesses, Customers, Suppliers, Transactions, SyncQueue])
+@DataClassName('LinkedBusiness')
+class LinkedBusinesses extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get type => text().nullable()();
+  TextColumn get phone => text().nullable()();
+  DateTimeColumn get linkedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DriftDatabase(tables: [Businesses, Customers, Suppliers, Transactions, SyncQueue, LinkedBusinesses])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 

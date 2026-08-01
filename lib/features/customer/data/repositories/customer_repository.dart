@@ -175,4 +175,13 @@ class CustomerRepository {
       }
     } catch (_) {}
   }
+
+  Future<CustomerModel?> fetchCustomerById(String id) async {
+    try {
+      final response = await _client.from('customers').select().eq('id', id).single();
+      return CustomerModel.fromJson(response);
+    } catch (e) {
+      return null;
+    }
+  }
 }

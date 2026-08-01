@@ -434,47 +434,8 @@ class _SyncStatusSheetState extends ConsumerState<SyncStatusSheet> {
   void _triggerSync() async {
     setState(() => _isSyncing = true);
     
-    // Perform real sync logic
     try {
-      final supabase = ref.read(supabaseServiceProvider).client;
-      final db = ref.read(databaseProvider);
-      
-      final pending = await db.select(db.syncQueue).get();
-      int successCount = 0;
-
-      for (var item in pending) {
-        try {
-          if (item.action == 'insert') {
-            await supabase.from(item.localTable).upsert(jsonDecode(item.data));
-            // Trigger balance RPC for transaction inserts
-            if (item.localTable == 'transactions') {
-              final txData = jsonDecode(item.data);
-              final factor = txData['type'] == 'credit' ? 1 : -1;
-              final amount = (txData['amount'] as num).toDouble() * factor;
-              
-              if (txData['customer_id'] != null) {
-                await supabase.rpc('update_customer_balance', params: {
-                  'c_id': txData['customer_id'],
-                  'amount_change': amount,
-                });
-              } else if (txData['supplier_id'] != null) {
-                await supabase.rpc('update_supplier_balance', params: {
-                  's_id': txData['supplier_id'],
-                  'amount_change': amount,
-                });
-              }
-            }
-          } else if (item.action == 'update') {
-            await supabase.from(item.localTable).update(jsonDecode(item.data)).eq('id', item.recordId);
-          } else if (item.action == 'delete') {
-            await supabase.from(item.localTable).delete().eq('id', item.recordId);
-          }
-          await (db.delete(db.syncQueue)..where((t) => t.id.equals(item.id))).go();
-          successCount++;
-        } catch (e) {
-          debugPrint('Sync failed for item ${item.id}: $e');
-        }
-      }
+      final successCount = await ref.read(syncServiceProvider).syncPendingChanges();
 
       if (mounted) {
         setState(() => _isSyncing = false);

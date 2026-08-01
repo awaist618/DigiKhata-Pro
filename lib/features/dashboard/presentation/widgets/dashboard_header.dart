@@ -8,6 +8,8 @@ import 'package:khataplus/features/notifications/presentation/screens/notificati
 
 import 'package:khataplus/features/qr/presentation/screens/qr_manager_screen.dart';
 
+import 'package:easy_localization/easy_localization.dart';
+
 class DashboardHeader extends ConsumerWidget {
   const DashboardHeader({super.key});
 
@@ -66,7 +68,7 @@ class DashboardHeader extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Hello, ${businessName.split(' ').first} 👋',
+                        '${'hello'.tr()}, ${businessName.split(' ').first} 👋',
                         style: GoogleFonts.poppins(
                           fontSize: 26,
                           fontWeight: FontWeight.bold,
@@ -77,7 +79,7 @@ class DashboardHeader extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        'Welcome to $businessName',
+                        '${'welcome_to'.tr()} $businessName',
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           color: Colors.white.withValues(alpha: 0.7),

@@ -6,6 +6,8 @@ import '../../data/repositories/dashboard_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:khataplus/core/providers/settings_provider.dart';
 
+import 'package:easy_localization/easy_localization.dart';
+
 class SummaryCards extends ConsumerWidget {
   final DashboardStats stats;
   const SummaryCards({super.key, required this.stats});
@@ -18,22 +20,22 @@ class SummaryCards extends ConsumerWidget {
         Expanded(
           child: _buildSummaryCard(
             context,
-            'TOTAL RECEIVABLE',
+            'total_receivable'.tr(),
             '${settings.currency} ${stats.totalReceivable.toStringAsFixed(0)}',
             Icons.arrow_downward_rounded,
             AppColors.success,
-            'You Get',
+            'you_get'.tr(),
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: _buildSummaryCard(
             context,
-            'TOTAL PAYABLE',
+            'total_payable'.tr(),
             '${settings.currency} ${stats.totalPayable.toStringAsFixed(0)}',
             Icons.arrow_upward_rounded,
             AppColors.danger,
-            'You Give',
+            'you_give'.tr(),
           ),
         ),
       ],

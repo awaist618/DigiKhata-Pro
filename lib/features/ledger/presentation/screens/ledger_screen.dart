@@ -10,6 +10,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:khataplus/core/providers/settings_provider.dart';
 import 'package:khataplus/features/dashboard/presentation/screens/transaction_details_screen.dart';
 
+import 'package:easy_localization/easy_localization.dart';
+
 class LedgerScreen extends ConsumerWidget {
   const LedgerScreen({super.key});
 
@@ -23,7 +25,7 @@ class LedgerScreen extends ConsumerWidget {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          'Daily Ledger',
+          'daily_ledger'.tr(),
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             color: isDarkMode ? Colors.white : AppColors.textPrimary,
@@ -43,12 +45,12 @@ class LedgerScreen extends ConsumerWidget {
                   Icon(Icons.history_rounded, size: 80, color: (isDarkMode ? Colors.white : AppColors.textSecondary).withValues(alpha: 0.3)),
                   const SizedBox(height: 16),
                   Text(
-                    'Your ledger is empty',
+                    'ledger_empty'.tr(),
                     style: GoogleFonts.poppins(color: isDarkMode ? Colors.white70 : AppColors.textSecondary, fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Record your first entry from the Dashboard',
+                    'record_first_entry'.tr(),
                     style: GoogleFonts.inter(color: isDarkMode ? Colors.white60 : AppColors.textSecondary, fontSize: 13),
                   ),
                 ],

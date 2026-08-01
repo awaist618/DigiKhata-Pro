@@ -8,6 +8,8 @@ import 'package:khataplus/features/business/presentation/providers/business_prov
 import 'package:khataplus/features/customer/presentation/providers/customer_provider.dart';
 import 'package:khataplus/features/customer/data/models/customer_model.dart';
 import 'package:khataplus/core/services/supabase_service.dart';
+import 'package:khataplus/features/business/data/models/business_model.dart';
+import 'package:khataplus/features/business/data/repositories/linked_business_repository.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
@@ -51,37 +53,81 @@ class _QrManagerScreenState extends ConsumerState<QrManagerScreen> {
     try {
       if (data.startsWith('customer:')) {
         final customerId = data.split(':').last;
-        _showAddCustomerDialog(customerId);
+        final customer = await ref.read(customerRepositoryProvider).fetchCustomerById(customerId);
+        if (customer != null) {
+          _showAddCustomerDialog(customer);
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Invalid QR: Customer not found')),
+            );
+          }
+        }
       } else {
         // Assume it's a business ID
-        _showBusinessInfo(data);
+        final repository = ref.read(linkedBusinessRepositoryProvider);
+        final business = await repository.fetchBusinessById(data);
+        
+        if (business != null) {
+          _showBusinessInfo(business);
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Invalid QR: Business not found')),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error processing QR: $e')),
+        );
       }
     } finally {
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) setState(() => _isProcessing = false);
-      });
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
 
-  void _showAddCustomerDialog(String customerId) async {
-    final supabase = ref.read(supabaseServiceProvider).client;
-    
-    // Fetch customer info from public profiles or shared data
-    // For now, let's show a dialog to add this ID as a new customer reference
+  void _showAddCustomerDialog(CustomerModel customer) async {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Add Customer via QR'),
-        content: Text('Do you want to add customer (ID: $customerId) to your business?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Name: ${customer.name}'),
+            const SizedBox(height: 8),
+            Text('Phone: ${customer.phone}'),
+            const SizedBox(height: 16),
+            const Text('Do you want to add this customer to your business?'),
+          ],
+        ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
-              // Implementation logic to add customer
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Customer linked successfully!')),
+              final businessId = ref.read(selectedBusinessIdProvider);
+              if (businessId == null) return;
+              
+              // Add as a NEW customer in our business, but with same details
+              final newCustomer = customer.copyWith(
+                id: '', // New ID for our business
+                businessId: businessId,
+                balance: 0, // Fresh balance in our ledger
               );
+              
+              await ref.read(customerRepositoryProvider).addCustomer(newCustomer);
+              ref.read(customersProvider.notifier).loadCustomers();
+
+              if (mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Customer added successfully!'), backgroundColor: AppColors.success),
+                );
+              }
             },
             child: const Text('Add'),
           ),
@@ -90,14 +136,36 @@ class _QrManagerScreenState extends ConsumerState<QrManagerScreen> {
     );
   }
 
-  void _showBusinessInfo(String businessId) async {
+  void _showBusinessInfo(BusinessModel business) async {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Business Scanned'),
-        content: Text('Found Business ID: $businessId\n\nFeature to link businesses is coming soon!'),
+        title: Text(business.name),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Type: ${business.type ?? 'General'}'),
+            const SizedBox(height: 8),
+            Text('Contact: ${business.phone ?? 'N/A'}'),
+            const SizedBox(height: 16),
+            const Text('Would you like to link this business to your workspace?'),
+          ],
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () async {
+              await ref.read(linkedBusinessRepositoryProvider).linkBusiness(business);
+              if (mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Business linked successfully!'), backgroundColor: AppColors.success),
+                );
+              }
+            },
+            child: const Text('Link Business'),
+          ),
         ],
       ),
     );

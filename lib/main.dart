@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -13,20 +14,54 @@ import 'core/providers/settings_provider.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'core/services/notification_service.dart';
+import 'package:workmanager/workmanager.dart';
+import 'core/database/app_database.dart';
+import 'core/services/sync_service.dart';
+
+@pragma('vm:entry-point')
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    try {
+      // 1. Initialize Dotenv
+      await dotenv.load(fileName: "assets/supabase.env");
+      
+      // 2. Initialize Supabase
+      final supabaseUrl = dotenv.env['SUPABASE_URL'];
+      final supabaseKey = dotenv.env['SUPABASE_ANON_KEY'];
+      if (supabaseUrl == null || supabaseKey == null) return false;
+
+      await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
+      
+      // 3. Initialize DB and Sync Service
+      final db = AppDatabase();
+      final syncService = SyncService(Supabase.instance.client, db);
+      
+      // 4. Sync
+      await syncService.syncPendingChanges();
+      
+      await db.close();
+      return true;
+    } catch (e) {
+      debugPrint('Background Sync Task Error: $e');
+      return false;
+    }
+  });
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
 
-  try {
-    // Initialize Firebase
-    await Firebase.initializeApp();
-  } catch (e) {
-    debugPrint("Firebase: Initialization error: $e");
-  }
+  // Initialize Workmanager for background sync
+  Workmanager().initialize(callbackDispatcher, isInDebugMode: kDebugMode);
+  Workmanager().registerPeriodicTask(
+    "1", 
+    "syncTask", 
+    frequency: const Duration(minutes: 15),
+    constraints: Constraints(networkType: NetworkType.connected),
+  );
 
   try {
-    // 1. Load environment variables
     await dotenv.load(fileName: "assets/supabase.env");
     
     final supabaseUrl = dotenv.env['SUPABASE_URL'];

@@ -6,6 +6,8 @@ import '../../data/repositories/dashboard_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:khataplus/core/providers/settings_provider.dart';
 
+import 'package:easy_localization/easy_localization.dart';
+
 class BalanceCard extends ConsumerWidget {
   final DashboardStats stats;
   const BalanceCard({super.key, required this.stats});
@@ -63,7 +65,7 @@ class BalanceCard extends ConsumerWidget {
                             const Icon(Icons.account_balance_outlined, color: Colors.white, size: 14),
                             const SizedBox(width: 6),
                             Text(
-                              'NET BALANCE',
+                              'net_balance'.tr(),
                               style: GoogleFonts.poppins(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
@@ -92,7 +94,7 @@ class BalanceCard extends ConsumerWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    isNegative ? 'You owe money to suppliers' : 'You are set to receive money',
+                    isNegative ? 'you_owe_money'.tr() : 'you_receive_money'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       color: Colors.white.withValues(alpha: 0.7),
@@ -110,11 +112,11 @@ class BalanceCard extends ConsumerWidget {
                     ),
                     child: Row(
                       children: [
-                        Expanded(child: _buildMiniStat(Icons.arrow_upward, 'Cash In', '${settings.currency} ${stats.todayCashIn.toStringAsFixed(0)}', Colors.greenAccent)),
+                        Expanded(child: _buildMiniStat(Icons.arrow_upward, 'cash_in'.tr(), '${settings.currency} ${stats.todayCashIn.toStringAsFixed(0)}', Colors.greenAccent)),
                         const SizedBox(width: 12),
                         Container(width: 1, height: 30, color: Colors.white.withValues(alpha: 0.1)),
                         const SizedBox(width: 12),
-                        Expanded(child: _buildMiniStat(Icons.arrow_downward, 'Cash Out', '${settings.currency} ${stats.todayCashOut.toStringAsFixed(0)}', Colors.redAccent)),
+                        Expanded(child: _buildMiniStat(Icons.arrow_downward, 'cash_out'.tr(), '${settings.currency} ${stats.todayCashOut.toStringAsFixed(0)}', Colors.redAccent)),
                       ],
                     ),
                   ),

@@ -138,7 +138,7 @@ class AnalyticsScreen extends ConsumerWidget {
       crossAxisCount: 2,
       crossAxisSpacing: 16,
       mainAxisSpacing: 16,
-      childAspectRatio: 1.2,
+      childAspectRatio: 1.1,
       children: [
         _buildSmallStatCard('net_profit'.tr(), '${settings.currency} ${data.netProfit.toStringAsFixed(0)}', Icons.trending_up, Colors.green, isDarkMode),
         _buildSmallStatCard('total_volume'.tr(), '${settings.currency} ${data.cashFlow.toStringAsFixed(0)}', Icons.sync_alt, Colors.blue, isDarkMode),
@@ -148,7 +148,7 @@ class AnalyticsScreen extends ConsumerWidget {
 
   Widget _buildSmallStatCard(String title, String value, IconData icon, Color color, bool isDarkMode) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDarkMode ? AppColors.logoNavyBottom : Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -165,30 +165,35 @@ class AnalyticsScreen extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: color, size: 20),
+            child: Icon(icon, color: color, size: 18),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Text(
             title,
             style: GoogleFonts.inter(
-              fontSize: 11,
+              fontSize: 10,
               color: isDarkMode ? Colors.white70 : AppColors.textSecondary,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: GoogleFonts.robotoMono(
-              fontWeight: FontWeight.w800,
-              fontSize: 20,
-              color: isDarkMode ? Colors.white : AppColors.textPrimary,
+          const SizedBox(height: 2),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: GoogleFonts.robotoMono(
+                fontWeight: FontWeight.w800,
+                fontSize: 18,
+                color: isDarkMode ? Colors.white : AppColors.textPrimary,
+              ),
             ),
           ),
         ],
