@@ -69,7 +69,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> wit
         final isEmail = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(contact);
         
         if (isEmail) {
-          await supabaseService.resetPassword(contact);
+          await supabaseService.resetPassword(
+            contact,
+            redirectTo: 'io.supabase.flutter.khataplus://reset-callback',
+          );
           if (mounted) {
             setState(() => _isLoading = false);
             _showSuccessDialog();

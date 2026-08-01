@@ -16,6 +16,7 @@ import 'core/services/notification_service.dart';
 import 'package:workmanager/workmanager.dart';
 import 'core/database/app_database.dart';
 import 'core/services/sync_service.dart';
+import 'features/auth/presentation/reset_password/reset_password_screen.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -36,7 +37,10 @@ void callbackDispatcher() {
       final supabaseKey = dotenv.env['SUPABASE_ANON_KEY'];
       if (supabaseUrl == null || supabaseKey == null) return false;
 
-      await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
+      await Supabase.initialize(
+        url: supabaseUrl, 
+        anonKey: supabaseKey,
+      );
       
       // 3. Initialize DB and Sync Service
       final db = AppDatabase();
@@ -53,6 +57,8 @@ void callbackDispatcher() {
     }
   });
 }
+
+final navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -99,13 +105,35 @@ void main() async {
   );
 }
 
-class AppStartupWidget extends ConsumerWidget {
+class AppStartupWidget extends ConsumerStatefulWidget {
   const AppStartupWidget({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppStartupWidget> createState() => _AppStartupWidgetState();
+}
+
+class _AppStartupWidgetState extends ConsumerState<AppStartupWidget> {
+  @override
+  void initState() {
+    super.initState();
     // Initialize Notification Service
-    ref.read(notificationServiceProvider).initialize();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(notificationServiceProvider).initialize();
+      
+      // Supabase Auth Listener for Deep Linking (Reset Password)
+      Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+        final AuthChangeEvent event = data.event;
+        if (event == AuthChangeEvent.passwordRecovery) {
+          navigatorKey.currentState?.push(
+            MaterialPageRoute(builder: (_) => const ResetPasswordScreen()),
+          );
+        }
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return const MyApp();
   }
 }
@@ -119,6 +147,7 @@ class MyApp extends ConsumerWidget {
     final isDarkMode = settings.isDarkMode;
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'DigiKhata Pro',
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,

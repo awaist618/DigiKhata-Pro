@@ -5,6 +5,7 @@ import 'package:khataplus/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:khataplus/features/business/presentation/providers/business_provider.dart';
 import 'package:khataplus/features/notifications/presentation/screens/notifications_screen.dart';
+import 'package:khataplus/features/profile/presentation/providers/profile_provider.dart';
 
 import 'package:khataplus/features/qr/presentation/screens/qr_manager_screen.dart';
 
@@ -16,6 +17,25 @@ class DashboardHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final businessName = ref.watch(businessNameProvider);
+    final profileAsync = ref.watch(profileProvider);
+
+    String greetingName = '';
+    
+    profileAsync.whenData((user) {
+      if (user?.fullName != null && user!.fullName!.trim().isNotEmpty) {
+        // Extract first name and ensure it's capitalized
+        final parts = user.fullName!.trim().split(' ');
+        greetingName = parts.first[0].toUpperCase() + parts.first.substring(1).toLowerCase();
+      }
+    });
+
+    if (greetingName.isEmpty) {
+      // Fallback to first part of business name if full name not available
+      final parts = businessName.trim().split(' ');
+      if (parts.isNotEmpty) {
+        greetingName = parts.first[0].toUpperCase() + parts.first.substring(1).toLowerCase();
+      }
+    }
 
     return Container(
       width: double.infinity,
@@ -68,7 +88,7 @@ class DashboardHeader extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${'hello'.tr()}, ${businessName.split(' ').first} 👋',
+                        '${'hello'.tr()}, $greetingName 👋',
                         style: GoogleFonts.poppins(
                           fontSize: 26,
                           fontWeight: FontWeight.bold,
@@ -79,7 +99,7 @@ class DashboardHeader extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        '${'welcome_to'.tr()} $businessName',
+                        '${'welcome_to'.tr()} ${businessName.trim()}',
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           color: Colors.white.withValues(alpha: 0.7),

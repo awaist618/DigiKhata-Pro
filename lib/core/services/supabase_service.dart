@@ -83,8 +83,8 @@ class SupabaseService {
     } catch (_) {}
   }
 
-  Future<void> resetPassword(String email) async {
-    await _client.auth.resetPasswordForEmail(email);
+  Future<void> resetPassword(String email, {String? redirectTo}) async {
+    await _client.auth.resetPasswordForEmail(email, redirectTo: redirectTo);
   }
 
   Future<void> resetPasswordViaPhone(String phone) async {
