@@ -21,19 +21,19 @@ class AdminStatCard extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: isDarkMode ? AppColors.surfaceDark : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: color.withValues(alpha: isDarkMode ? 0.15 : 0.1),
-          width: 1.5,
+          width: 1,
         ),
         boxShadow: [
           BoxShadow(
             color: color.withValues(alpha: isDarkMode ? 0.08 : 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -54,7 +54,7 @@ class AdminStatCard extends StatelessWidget {
                   ),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, color: color, size: 18),
+                child: Icon(icon, color: color, size: 16),
               ),
               Icon(Icons.trending_up_rounded, color: color.withValues(alpha: 0.2), size: 12),
             ],
@@ -66,7 +66,7 @@ class AdminStatCard extends StatelessWidget {
               Text(
                 title,
                 style: GoogleFonts.inter(
-                  fontSize: 10,
+                  fontSize: 9,
                   fontWeight: FontWeight.w700,
                   color: AppColors.textSecondary,
                   letterSpacing: 0.5,
@@ -74,14 +74,14 @@ class AdminStatCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 1),
               FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerLeft,
                 child: Text(
                   value,
                   style: GoogleFonts.robotoMono(
-                    fontSize: 20,
+                    fontSize: 18,
                     fontWeight: FontWeight.w900,
                     color: isDarkMode ? Colors.white : AppColors.textPrimary,
                     letterSpacing: -0.5,

@@ -3698,6 +3698,308 @@ class LocalNotificationsCompanion extends UpdateCompanion<LocalNotification> {
   }
 }
 
+class $TransactionTagsTable extends TransactionTags
+    with TableInfo<$TransactionTagsTable, TransactionTag> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TransactionTagsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _businessIdMeta = const VerificationMeta(
+    'businessId',
+  );
+  @override
+  late final GeneratedColumn<String> businessId = GeneratedColumn<String>(
+    'business_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES businesses (id)',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+    'color',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, businessId, name, color];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'transaction_tags';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TransactionTag> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('business_id')) {
+      context.handle(
+        _businessIdMeta,
+        businessId.isAcceptableOrUnknown(data['business_id']!, _businessIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_businessIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('color')) {
+      context.handle(
+        _colorMeta,
+        color.isAcceptableOrUnknown(data['color']!, _colorMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  TransactionTag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TransactionTag(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      businessId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}business_id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      color: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}color'],
+      ),
+    );
+  }
+
+  @override
+  $TransactionTagsTable createAlias(String alias) {
+    return $TransactionTagsTable(attachedDatabase, alias);
+  }
+}
+
+class TransactionTag extends DataClass implements Insertable<TransactionTag> {
+  final int id;
+  final String businessId;
+  final String name;
+  final String? color;
+  const TransactionTag({
+    required this.id,
+    required this.businessId,
+    required this.name,
+    this.color,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['business_id'] = Variable<String>(businessId);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || color != null) {
+      map['color'] = Variable<String>(color);
+    }
+    return map;
+  }
+
+  TransactionTagsCompanion toCompanion(bool nullToAbsent) {
+    return TransactionTagsCompanion(
+      id: Value(id),
+      businessId: Value(businessId),
+      name: Value(name),
+      color: color == null && nullToAbsent
+          ? const Value.absent()
+          : Value(color),
+    );
+  }
+
+  factory TransactionTag.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TransactionTag(
+      id: serializer.fromJson<int>(json['id']),
+      businessId: serializer.fromJson<String>(json['businessId']),
+      name: serializer.fromJson<String>(json['name']),
+      color: serializer.fromJson<String?>(json['color']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'businessId': serializer.toJson<String>(businessId),
+      'name': serializer.toJson<String>(name),
+      'color': serializer.toJson<String?>(color),
+    };
+  }
+
+  TransactionTag copyWith({
+    int? id,
+    String? businessId,
+    String? name,
+    Value<String?> color = const Value.absent(),
+  }) => TransactionTag(
+    id: id ?? this.id,
+    businessId: businessId ?? this.businessId,
+    name: name ?? this.name,
+    color: color.present ? color.value : this.color,
+  );
+  TransactionTag copyWithCompanion(TransactionTagsCompanion data) {
+    return TransactionTag(
+      id: data.id.present ? data.id.value : this.id,
+      businessId: data.businessId.present
+          ? data.businessId.value
+          : this.businessId,
+      name: data.name.present ? data.name.value : this.name,
+      color: data.color.present ? data.color.value : this.color,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TransactionTag(')
+          ..write('id: $id, ')
+          ..write('businessId: $businessId, ')
+          ..write('name: $name, ')
+          ..write('color: $color')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, businessId, name, color);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TransactionTag &&
+          other.id == this.id &&
+          other.businessId == this.businessId &&
+          other.name == this.name &&
+          other.color == this.color);
+}
+
+class TransactionTagsCompanion extends UpdateCompanion<TransactionTag> {
+  final Value<int> id;
+  final Value<String> businessId;
+  final Value<String> name;
+  final Value<String?> color;
+  const TransactionTagsCompanion({
+    this.id = const Value.absent(),
+    this.businessId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.color = const Value.absent(),
+  });
+  TransactionTagsCompanion.insert({
+    this.id = const Value.absent(),
+    required String businessId,
+    required String name,
+    this.color = const Value.absent(),
+  }) : businessId = Value(businessId),
+       name = Value(name);
+  static Insertable<TransactionTag> custom({
+    Expression<int>? id,
+    Expression<String>? businessId,
+    Expression<String>? name,
+    Expression<String>? color,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (businessId != null) 'business_id': businessId,
+      if (name != null) 'name': name,
+      if (color != null) 'color': color,
+    });
+  }
+
+  TransactionTagsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? businessId,
+    Value<String>? name,
+    Value<String?>? color,
+  }) {
+    return TransactionTagsCompanion(
+      id: id ?? this.id,
+      businessId: businessId ?? this.businessId,
+      name: name ?? this.name,
+      color: color ?? this.color,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (businessId.present) {
+      map['business_id'] = Variable<String>(businessId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TransactionTagsCompanion(')
+          ..write('id: $id, ')
+          ..write('businessId: $businessId, ')
+          ..write('name: $name, ')
+          ..write('color: $color')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3711,6 +4013,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $LocalNotificationsTable localNotifications =
       $LocalNotificationsTable(this);
+  late final $TransactionTagsTable transactionTags = $TransactionTagsTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3723,6 +4028,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     syncQueue,
     linkedBusinesses,
     localNotifications,
+    transactionTags,
   ];
 }
 
@@ -3806,6 +4112,26 @@ final class $$BusinessesTableReferences
     ).filter((f) => f.businessId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_transactionsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$TransactionTagsTable, List<TransactionTag>>
+  _transactionTagsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.transactionTags,
+    aliasName: 'businesses__id__transaction_tags__business_id',
+  );
+
+  $$TransactionTagsTableProcessedTableManager get transactionTagsRefs {
+    final manager = $$TransactionTagsTableTableManager(
+      $_db,
+      $_db.transactionTags,
+    ).filter((f) => f.businessId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _transactionTagsRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -3932,6 +4258,31 @@ class $$BusinessesTableFilterComposer
           }) => $$TransactionsTableFilterComposer(
             $db: $db,
             $table: $db.transactions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> transactionTagsRefs(
+    Expression<bool> Function($$TransactionTagsTableFilterComposer f) f,
+  ) {
+    final $$TransactionTagsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.transactionTags,
+      getReferencedColumn: (t) => t.businessId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TransactionTagsTableFilterComposer(
+            $db: $db,
+            $table: $db.transactionTags,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -4109,6 +4460,31 @@ class $$BusinessesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> transactionTagsRefs<T extends Object>(
+    Expression<T> Function($$TransactionTagsTableAnnotationComposer a) f,
+  ) {
+    final $$TransactionTagsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.transactionTags,
+      getReferencedColumn: (t) => t.businessId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TransactionTagsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.transactionTags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$BusinessesTableTableManager
@@ -4128,6 +4504,7 @@ class $$BusinessesTableTableManager
             bool customersRefs,
             bool suppliersRefs,
             bool transactionsRefs,
+            bool transactionTagsRefs,
           })
         > {
   $$BusinessesTableTableManager(_$AppDatabase db, $BusinessesTable table)
@@ -4202,6 +4579,7 @@ class $$BusinessesTableTableManager
                 customersRefs = false,
                 suppliersRefs = false,
                 transactionsRefs = false,
+                transactionTagsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -4209,6 +4587,7 @@ class $$BusinessesTableTableManager
                     if (customersRefs) db.customers,
                     if (suppliersRefs) db.suppliers,
                     if (transactionsRefs) db.transactions,
+                    if (transactionTagsRefs) db.transactionTags,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -4276,6 +4655,27 @@ class $$BusinessesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (transactionTagsRefs)
+                        await $_getPrefetchedData<
+                          BusinessesData,
+                          $BusinessesTable,
+                          TransactionTag
+                        >(
+                          currentTable: table,
+                          referencedTable: $$BusinessesTableReferences
+                              ._transactionTagsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$BusinessesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).transactionTagsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.businessId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -4300,6 +4700,7 @@ typedef $$BusinessesTableProcessedTableManager =
         bool customersRefs,
         bool suppliersRefs,
         bool transactionsRefs,
+        bool transactionTagsRefs,
       })
     >;
 typedef $$CustomersTableCreateCompanionBuilder =
@@ -6621,6 +7022,307 @@ typedef $$LocalNotificationsTableProcessedTableManager =
       LocalNotification,
       PrefetchHooks Function()
     >;
+typedef $$TransactionTagsTableCreateCompanionBuilder =
+    TransactionTagsCompanion Function({
+      Value<int> id,
+      required String businessId,
+      required String name,
+      Value<String?> color,
+    });
+typedef $$TransactionTagsTableUpdateCompanionBuilder =
+    TransactionTagsCompanion Function({
+      Value<int> id,
+      Value<String> businessId,
+      Value<String> name,
+      Value<String?> color,
+    });
+
+final class $$TransactionTagsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $TransactionTagsTable, TransactionTag> {
+  $$TransactionTagsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $BusinessesTable _businessIdTable(_$AppDatabase db) => db.businesses
+      .createAlias('transaction_tags__business_id__businesses__id');
+
+  $$BusinessesTableProcessedTableManager get businessId {
+    final $_column = $_itemColumn<String>('business_id')!;
+
+    final manager = $$BusinessesTableTableManager(
+      $_db,
+      $_db.businesses,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_businessIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$TransactionTagsTableFilterComposer
+    extends Composer<_$AppDatabase, $TransactionTagsTable> {
+  $$TransactionTagsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$BusinessesTableFilterComposer get businessId {
+    final $$BusinessesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.businessId,
+      referencedTable: $db.businesses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BusinessesTableFilterComposer(
+            $db: $db,
+            $table: $db.businesses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TransactionTagsTableOrderingComposer
+    extends Composer<_$AppDatabase, $TransactionTagsTable> {
+  $$TransactionTagsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$BusinessesTableOrderingComposer get businessId {
+    final $$BusinessesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.businessId,
+      referencedTable: $db.businesses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BusinessesTableOrderingComposer(
+            $db: $db,
+            $table: $db.businesses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TransactionTagsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TransactionTagsTable> {
+  $$TransactionTagsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
+
+  $$BusinessesTableAnnotationComposer get businessId {
+    final $$BusinessesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.businessId,
+      referencedTable: $db.businesses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BusinessesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.businesses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TransactionTagsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TransactionTagsTable,
+          TransactionTag,
+          $$TransactionTagsTableFilterComposer,
+          $$TransactionTagsTableOrderingComposer,
+          $$TransactionTagsTableAnnotationComposer,
+          $$TransactionTagsTableCreateCompanionBuilder,
+          $$TransactionTagsTableUpdateCompanionBuilder,
+          (TransactionTag, $$TransactionTagsTableReferences),
+          TransactionTag,
+          PrefetchHooks Function({bool businessId})
+        > {
+  $$TransactionTagsTableTableManager(
+    _$AppDatabase db,
+    $TransactionTagsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TransactionTagsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TransactionTagsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TransactionTagsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> businessId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> color = const Value.absent(),
+              }) => TransactionTagsCompanion(
+                id: id,
+                businessId: businessId,
+                name: name,
+                color: color,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String businessId,
+                required String name,
+                Value<String?> color = const Value.absent(),
+              }) => TransactionTagsCompanion.insert(
+                id: id,
+                businessId: businessId,
+                name: name,
+                color: color,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$TransactionTagsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({businessId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (businessId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.businessId,
+                                referencedTable:
+                                    $$TransactionTagsTableReferences
+                                        ._businessIdTable(db),
+                                referencedColumn:
+                                    $$TransactionTagsTableReferences
+                                        ._businessIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$TransactionTagsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TransactionTagsTable,
+      TransactionTag,
+      $$TransactionTagsTableFilterComposer,
+      $$TransactionTagsTableOrderingComposer,
+      $$TransactionTagsTableAnnotationComposer,
+      $$TransactionTagsTableCreateCompanionBuilder,
+      $$TransactionTagsTableUpdateCompanionBuilder,
+      (TransactionTag, $$TransactionTagsTableReferences),
+      TransactionTag,
+      PrefetchHooks Function({bool businessId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6639,4 +7341,6 @@ class $AppDatabaseManager {
       $$LinkedBusinessesTableTableManager(_db, _db.linkedBusinesses);
   $$LocalNotificationsTableTableManager get localNotifications =>
       $$LocalNotificationsTableTableManager(_db, _db.localNotifications);
+  $$TransactionTagsTableTableManager get transactionTags =>
+      $$TransactionTagsTableTableManager(_db, _db.transactionTags);
 }

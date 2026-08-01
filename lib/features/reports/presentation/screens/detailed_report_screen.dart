@@ -295,18 +295,23 @@ class _DetailedReportScreenState extends ConsumerState<DetailedReportScreen> {
   }
 
   Widget _buildSummaryItem(String label, double amount, Color color, dynamic settings) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '${settings.currency} ${amount.toStringAsFixed(0)}',
-          style: GoogleFonts.robotoMono(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-      ],
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.inter(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              '${settings.currency} ${amount.toStringAsFixed(0)}',
+              style: GoogleFonts.robotoMono(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
