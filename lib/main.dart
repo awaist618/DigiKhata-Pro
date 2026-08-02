@@ -100,7 +100,7 @@ class _AppStartupWidgetState extends ConsumerState<AppStartupWidget> with Widget
       ref.read(notificationServiceProvider).initialize();
       Supabase.instance.client.auth.onAuthStateChange.listen((data) {
         if (data.event == AuthChangeEvent.passwordRecovery) {
-          navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => const ResetPasswordScreen()));
+          navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => LoginScreen())); // Send to login on recovery link
         }
       });
     });
@@ -119,7 +119,9 @@ class _AppStartupWidgetState extends ConsumerState<AppStartupWidget> with Widget
     } else if (state == AppLifecycleState.resumed) {
       if (_backgroundTime != null) {
         final duration = DateTime.now().difference(_backgroundTime!);
-        if (duration.inSeconds > 15) {
+        _backgroundTime = null; // Reset to prevent double triggers
+
+        if (duration.inSeconds > 180) {
           _lockApp();
         }
       }
@@ -133,11 +135,11 @@ class _AppStartupWidgetState extends ConsumerState<AppStartupWidget> with Widget
     if (session != null) {
       if (security.isAutoLogoutEnabled) {
         await ref.read(supabaseServiceProvider).signOut();
-        navigatorKey.currentState?.pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const LoginScreen()), (route) => false);
+        navigatorKey.currentState?.pushAndRemoveUntil(MaterialPageRoute(builder: (_) => LoginScreen()), (route) => false);
       } else if (security.isBiometricEnabled) {
         final authenticated = await ref.read(securityProvider.notifier).authenticate();
         if (!authenticated) {
-          navigatorKey.currentState?.pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const LoginScreen()), (route) => false);
+          navigatorKey.currentState?.pushAndRemoveUntil(MaterialPageRoute(builder: (_) => LoginScreen()), (route) => false);
         }
       }
     }
@@ -177,7 +179,7 @@ class MyApp extends ConsumerWidget {
         textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme),
         scaffoldBackgroundColor: AppColors.background,
       ),
-      home: const SplashScreen(),
+      home: SplashScreen(),
     );
   }
 }

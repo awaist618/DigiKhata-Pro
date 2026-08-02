@@ -40,8 +40,11 @@ class TagManagementScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(20),
             itemCount: tags.length,
             itemBuilder: (context, index) {
-              final tag = tags[index] as dynamic;
-              final color = tag.color != null ? Color(int.parse(tag.color!)) : AppColors.primaryBlue;
+              final tagMap = (tags[index] as dynamic).data;
+              final tagName = tagMap['name'] as String;
+              final tagColor = tagMap['color'] as String?;
+              final tagId = tagMap['id'] as int;
+              final color = tagColor != null ? Color(int.parse(tagColor)) : AppColors.primaryBlue;
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
@@ -62,10 +65,10 @@ class TagManagementScreen extends ConsumerWidget {
                     ),
                     child: Icon(Icons.label, color: color, size: 20),
                   ),
-                  title: Text(tag.name, style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+                  title: Text(tagName, style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete_outline, color: AppColors.danger),
-                    onPressed: () => _confirmDelete(context, ref, tag.id),
+                    onPressed: () => _confirmDelete(context, ref, tagId),
                   ),
                 ),
               );

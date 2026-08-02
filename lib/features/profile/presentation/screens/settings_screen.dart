@@ -137,7 +137,7 @@ class SettingsScreen extends ConsumerWidget {
           decoration: BoxDecoration(color: AppColors.primaryBlue, borderRadius: BorderRadius.circular(12)),
           child: const Icon(Icons.account_balance_wallet, color: Colors.white, size: 32),
         ),
-        applicationLegalese: '© 2026 Zenvyro Labs x Awais. All rights reserved.',
+        applicationLegalese: '© 2026 Zenvyro Labs. All rights reserved.',
         children: [
           const SizedBox(height: 16),
           Text(

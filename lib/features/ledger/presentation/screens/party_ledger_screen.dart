@@ -90,11 +90,12 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     ...tags.map((tagObj) {
-                      final tag = tagObj as dynamic;
+                      final tagMap = (tagObj as dynamic).data;
+                      final tagName = tagMap['name'] as String;
                       return FilterChip(
-                        label: Text(tag.name),
-                        selected: _filterTag == tag.name,
-                        onSelected: (val) => setModalState(() => _filterTag = val ? tag.name : null),
+                        label: Text(tagName),
+                        selected: _filterTag == tagName,
+                        onSelected: (val) => setModalState(() => _filterTag = val ? tagName : null),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       );
                     }),

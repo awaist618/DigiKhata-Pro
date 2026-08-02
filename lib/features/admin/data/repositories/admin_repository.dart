@@ -140,4 +140,50 @@ class AdminRepository {
   Future<void> deleteBanner(dynamic id) async {
     await _client.from('banners').delete().eq('id', id);
   }
+
+  // System Settings
+  Future<Map<String, dynamic>> getSystemSettings() async {
+    try {
+      final res = await _client.from('system_settings').select();
+      final Map<String, dynamic> settings = {};
+      for (var item in (res as List)) {
+        settings[item['key']] = item['value'];
+      }
+      return settings;
+    } catch (e) {
+      debugPrint('Error fetching system settings: $e');
+      return {
+        'maintenance_mode': 'false',
+        'terms_and_conditions': '',
+        'privacy_policy': '',
+      };
+    }
+  }
+
+  Future<void> updateSystemSetting(String key, String value) async {
+    await _client.from('system_settings').upsert({
+      'key': key,
+      'value': value,
+      'updated_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  // Report Data Fetching
+  Future<List<Map<String, dynamic>>> getUserGrowthData() async {
+    return await _client.rpc('get_user_growth_stats');
+  }
+
+  Future<List<Map<String, dynamic>>> getBusinessActivityData() async {
+    return await _client.from('businesses').select('type, id');
+  }
+
+  Future<List<Map<String, dynamic>>> getTransactionVolumeData() async {
+    return await _client.from('transactions').select('amount, type, created_at');
+  }
+
+  Future<List<Map<String, dynamic>>> getComplianceAuditData() async {
+    // This could be from a dedicated logs table if it exists, 
+    // otherwise we use profiles/transactions as proxy
+    return await _client.from('profiles').select('email, created_at, is_blocked');
+  }
 }

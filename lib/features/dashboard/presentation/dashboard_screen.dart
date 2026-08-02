@@ -66,26 +66,13 @@ class DashboardScreen extends ConsumerWidget {
       children: [
         AppLogo(size: 40, animate: false),
         const SizedBox(height: 8),
-        RichText(
-          text: TextSpan(
-            style: TextStyle(
-              color: isDarkMode ? Colors.white38 : Colors.black26,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.0,
-            ),
-            children: [
-              const TextSpan(text: 'Powered by '),
-              const TextSpan(text: 'Zenvyro Labs '),
-              TextSpan(
-                text: 'X',
-                style: TextStyle(
-                  color: AppColors.primaryBlue.withValues(alpha: isDarkMode ? 0.3 : 0.2),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const TextSpan(text: ' AWAIS'),
-            ],
+        Text(
+          'Powered by Zenvyro Labs',
+          style: TextStyle(
+            color: isDarkMode ? Colors.white38 : Colors.black26,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1.0,
           ),
         ),
       ],

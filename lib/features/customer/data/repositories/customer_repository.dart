@@ -2,11 +2,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:khataplus/core/database/app_database.dart';
 import 'package:drift/drift.dart';
 import 'dart:convert';
+import 'package:uuid/uuid.dart';
 import '../models/customer_model.dart';
 
 class CustomerRepository {
   final SupabaseClient _client;
   final AppDatabase _db;
+  final _uuid = const Uuid();
 
   CustomerRepository(this._client, this._db);
 
@@ -83,7 +85,7 @@ class CustomerRepository {
 
   Future<void> addCustomer(CustomerModel customer) async {
     // 1. Generate ID if not present
-    final id = customer.id.isEmpty ? DateTime.now().millisecondsSinceEpoch.toString() : customer.id;
+    final id = customer.id.isEmpty ? _uuid.v4() : customer.id;
     final updatedCustomer = customer.copyWith(id: id);
 
     // 2. Insert locally

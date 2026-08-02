@@ -19,7 +19,7 @@ import 'package:khataplus/features/auth/presentation/register/register_screen.da
 import 'package:khataplus/features/auth/presentation/forgot_password/forgot_password_screen.dart';
 import 'package:khataplus/features/business/presentation/selection/business_selection_screen.dart';
 import 'package:khataplus/core/providers/security_provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:khataplus/features/splash/presentation/splash_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../register/widgets/google_button.dart';
 
@@ -122,11 +122,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
           _promptBiometricEnrollment(email, password);
         }
 
-        if (profile?.role == 'admin') {
-          NavigationUtils.pushReplacement(context, const AdminMainWrapper());
-        } else {
-          NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
-        }
+        NavigationUtils.pushReplacement(context, SplashScreen());
       }
     } on AuthException catch (e) {
       if (mounted) {
@@ -168,11 +164,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
       final profile = await ref.read(profileRepositoryProvider).getProfile(supabaseService.currentUser!.id);
 
       if (mounted) {
-        if (profile?.role == 'admin') {
-          NavigationUtils.pushReplacement(context, const AdminMainWrapper());
-        } else {
-          NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
-        }
+        NavigationUtils.pushReplacement(context, SplashScreen());
       }
     } catch (e) {
       if (mounted) {
@@ -212,11 +204,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
         final profile = await ref.read(profileRepositoryProvider).getProfile(supabaseService.currentUser!.id);
 
         if (mounted) {
-          if (profile?.role == 'admin') {
-            NavigationUtils.pushReplacement(context, const AdminMainWrapper());
-          } else {
-            NavigationUtils.pushReplacement(context, const BusinessSelectionScreen());
-          }
+          NavigationUtils.pushReplacement(context, SplashScreen());
         }
       } catch (e) {
         if (mounted) {
@@ -290,25 +278,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                             const SizedBox(height: 40),
                             const AppLogo(size: 80, animate: false),
                             const SizedBox(height: 16),
-                            RichText(
-                              text: TextSpan(
-                                style: AppTextStyles.poppins(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white,
-                                  letterSpacing: 2.0,
-                                ),
-                                children: [
-                                  const TextSpan(text: 'ZENVYRO LABS '),
-                                  const TextSpan(
-                                    text: 'X',
-                                    style: TextStyle(
-                                      color: AppColors.skyBlue,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const TextSpan(text: ' AWAIS'),
-                                ],
+                            Text(
+                              'ZENVYRO LABS',
+                              style: AppTextStyles.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                                letterSpacing: 2.0,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -455,25 +431,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                RichText(
-                                  text: TextSpan(
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDarkMode ? Colors.white38 : Colors.black38,
-                                      letterSpacing: 1.5,
-                                    ),
-                                    children: [
-                                      const TextSpan(text: 'ZENVYRO LABS '),
-                                      TextSpan(
-                                        text: 'X',
-                                        style: TextStyle(
-                                          color: AppColors.primaryBlue.withValues(alpha: 0.5),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const TextSpan(text: ' AWAIS'),
-                                    ],
+                                Text(
+                                  'ZENVYRO LABS',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDarkMode ? Colors.white38 : Colors.black38,
+                                    letterSpacing: 1.5,
                                   ),
                                 ),
                               ],

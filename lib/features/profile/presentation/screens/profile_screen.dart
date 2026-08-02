@@ -12,6 +12,7 @@ import 'package:khataplus/features/profile/presentation/providers/profile_provid
 import 'package:khataplus/features/main_wrapper/main_wrapper.dart';
 import 'edit_profile_screen.dart';
 import 'change_password_screen.dart';
+import 'developer_info_screen.dart';
 
 import 'settings_screen.dart';
 
@@ -107,6 +108,18 @@ class ProfileScreen extends ConsumerWidget {
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                ),
+                isDarkMode: isDarkMode,
+              ),
+              const SizedBox(height: 24),
+              _buildSectionTitle('About', isDarkMode),
+              const SizedBox(height: 12),
+              _buildSettingItem(
+                icon: Icons.info_outline_rounded,
+                title: 'About Developer',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const DeveloperInfoScreen()),
                 ),
                 isDarkMode: isDarkMode,
               ),

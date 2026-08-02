@@ -62,26 +62,14 @@ class ForgotPasswordHeader extends StatelessWidget {
                     ),
                     const AppLogo(size: 64, animate: false),
                     const SizedBox(height: 12),
-                    RichText(
-                      text: TextSpan(
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                          letterSpacing: 1.5,
-                        ),
-                        children: [
-                          const TextSpan(text: 'ZENVYRO LABS '),
-                          const TextSpan(
-                            text: 'X',
-                            style: TextStyle(
-                              color: AppColors.skyBlue,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const TextSpan(text: ' AWAIS'),
-                        ],
+                    Text(
+                      'ZENVYRO LABS',
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        letterSpacing: 1.5,
                       ),
                     ),
                   ],

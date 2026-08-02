@@ -8,11 +8,13 @@ import '../../../notifications/data/models/notification_model.dart';
 import '../../../notifications/data/repositories/notification_repository.dart';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:uuid/uuid.dart';
 
 class TransactionRepository {
   final SupabaseClient _client;
   final AppDatabase _db;
   final NotificationRepository _notificationRepo;
+  final _uuid = const Uuid();
 
   TransactionRepository(this._client, this._db, this._notificationRepo);
 
@@ -38,7 +40,7 @@ class TransactionRepository {
   }
 
   Future<void> addTransaction(TransactionModel tx) async {
-    final id = tx.id.isEmpty ? DateTime.now().millisecondsSinceEpoch.toString() : tx.id;
+    final id = tx.id.isEmpty ? _uuid.v4() : tx.id;
     final updatedTx = tx.copyWith(id: id);
 
     // 1. Save locally
@@ -77,14 +79,20 @@ class TransactionRepository {
     ));
 
     // 3. Update local balance immediately
-    final factor = updatedTx.type == TransactionType.credit ? 1 : -1;
-    final amountChange = updatedTx.amount * factor;
-
+    double amountChange = 0;
     if (updatedTx.customerId != null) {
+      // Customer: Cash In (Credit) reduces debt, Cash Out (Debit) increases debt
+      final factor = updatedTx.type == TransactionType.credit ? -1 : 1;
+      amountChange = updatedTx.amount * factor;
+      
       final customer = await (_db.select(_db.customers)..where((t) => t.id.equals(updatedTx.customerId!))).getSingle();
       await (_db.update(_db.customers)..where((t) => t.id.equals(updatedTx.customerId!)))
           .write(CustomersCompanion(balance: Value(customer.balance + amountChange)));
     } else if (updatedTx.supplierId != null) {
+      // Supplier: Cash In (Credit) increases our debt, Cash Out (Debit) reduces our debt
+      final factor = updatedTx.type == TransactionType.credit ? 1 : -1;
+      amountChange = updatedTx.amount * factor;
+
       final supplier = await (_db.select(_db.suppliers)..where((t) => t.id.equals(updatedTx.supplierId!))).getSingle();
       await (_db.update(_db.suppliers)..where((t) => t.id.equals(updatedTx.supplierId!)))
           .write(SuppliersCompanion(balance: Value(supplier.balance + amountChange)));
@@ -107,14 +115,20 @@ class TransactionRepository {
     ));
 
     // 3. Reverse local balance
-    final factor = tx.type == TransactionType.credit ? -1 : 1;
-    final amountChange = tx.amount * factor;
-
+    double amountChange = 0;
     if (tx.customerId != null) {
+      // Reverse factor: Credit was -1 so reverse is +1, Debit was +1 so reverse is -1
+      final factor = tx.type == TransactionType.credit ? 1 : -1;
+      amountChange = tx.amount * factor;
+
       final customer = await (_db.select(_db.customers)..where((t) => t.id.equals(tx.customerId!))).getSingle();
       await (_db.update(_db.customers)..where((t) => t.id.equals(tx.customerId!)))
           .write(CustomersCompanion(balance: Value(customer.balance + amountChange)));
     } else if (tx.supplierId != null) {
+      // Reverse factor: Credit was +1 so reverse is -1, Debit was -1 so reverse is +1
+      final factor = tx.type == TransactionType.credit ? -1 : 1;
+      amountChange = tx.amount * factor;
+
       final supplier = await (_db.select(_db.suppliers)..where((t) => t.id.equals(tx.supplierId!))).getSingle();
       await (_db.update(_db.suppliers)..where((t) => t.id.equals(tx.supplierId!)))
           .write(SuppliersCompanion(balance: Value(supplier.balance + amountChange)));
@@ -143,19 +157,32 @@ class TransactionRepository {
     ));
 
     // 3. Update local balance: Subtract old amount and add new amount
-    final oldFactor = oldTx.type == TransactionType.credit ? -1 : 1;
-    final reverseAmount = oldTx.amount * oldFactor;
-
-    final newFactor = newTx.type == TransactionType.credit ? 1 : -1;
-    final applyAmount = newTx.amount * newFactor;
-
-    final totalChange = reverseAmount + applyAmount;
-
+    double totalChange = 0;
     if (newTx.customerId != null) {
+      // Undo old: old credit was -oldAmt, so undo is +oldAmt. old debit was +oldAmt, so undo is -oldAmt.
+      final oldFactor = oldTx.type == TransactionType.credit ? 1 : -1;
+      final reverseAmount = oldTx.amount * oldFactor;
+
+      // Apply new: new credit is -newAmt, new debit is +newAmt.
+      final newFactor = newTx.type == TransactionType.credit ? -1 : 1;
+      final applyAmount = newTx.amount * newFactor;
+
+      totalChange = reverseAmount + applyAmount;
+
       final customer = await (_db.select(_db.customers)..where((t) => t.id.equals(newTx.customerId!))).getSingle();
       await (_db.update(_db.customers)..where((t) => t.id.equals(newTx.customerId!)))
           .write(CustomersCompanion(balance: Value(customer.balance + totalChange)));
     } else if (newTx.supplierId != null) {
+      // Undo old: old credit was +oldAmt, so undo is -oldAmt. old debit was -oldAmt, so undo is +oldAmt.
+      final oldFactor = oldTx.type == TransactionType.credit ? -1 : 1;
+      final reverseAmount = oldTx.amount * oldFactor;
+
+      // Apply new: new credit is +newAmt, new debit is -newAmt.
+      final newFactor = newTx.type == TransactionType.credit ? 1 : -1;
+      final applyAmount = newTx.amount * newFactor;
+
+      totalChange = reverseAmount + applyAmount;
+
       final supplier = await (_db.select(_db.suppliers)..where((t) => t.id.equals(newTx.supplierId!))).getSingle();
       await (_db.update(_db.suppliers)..where((t) => t.id.equals(newTx.supplierId!)))
           .write(SuppliersCompanion(balance: Value(supplier.balance + totalChange)));
@@ -178,18 +205,20 @@ class TransactionRepository {
             await _client.from(item.localTable).upsert(cloudData);
             
             if (item.localTable == 'transactions' && item.action == 'insert') {
-              final factor = data['type'] == 'credit' ? 1 : -1;
-              final amount = (data['amount'] as num).toDouble() * factor;
-              
+              double amountChange = 0;
               if (data['customer_id'] != null) {
+                final factor = data['type'] == 'credit' ? -1 : 1;
+                amountChange = (data['amount'] as num).toDouble() * factor;
                 await _client.rpc('update_customer_balance', params: {
                   'c_id': data['customer_id'],
-                  'amount_change': amount,
+                  'amount_change': amountChange,
                 });
               } else if (data['supplier_id'] != null) {
+                final factor = data['type'] == 'credit' ? 1 : -1;
+                amountChange = (data['amount'] as num).toDouble() * factor;
                 await _client.rpc('update_supplier_balance', params: {
                   's_id': data['supplier_id'],
-                  'amount_change': amount,
+                  'amount_change': amountChange,
                 });
               }
             }

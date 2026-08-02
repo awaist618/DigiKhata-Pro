@@ -69,13 +69,14 @@ class DashboardHeader extends ConsumerWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     String greetingName = '';
-    
-    profileAsync.whenData((user) {
-      if (user?.fullName != null && user!.fullName!.trim().isNotEmpty) {
-        final parts = user.fullName!.trim().split(' ');
+    final user = profileAsync.value;
+
+    if (user?.fullName != null && user!.fullName!.trim().isNotEmpty) {
+      final parts = user.fullName!.trim().split(' ');
+      if (parts.isNotEmpty && parts.first.isNotEmpty) {
         greetingName = parts.first[0].toUpperCase() + parts.first.substring(1).toLowerCase();
       }
-    });
+    }
 
     if (greetingName.isEmpty) {
       final parts = businessName.trim().split(' ');
@@ -125,25 +126,13 @@ class DashboardHeader extends ConsumerWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          RichText(
-                            text: TextSpan(
-                              style: GoogleFonts.poppins(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white.withValues(alpha: 0.9),
-                                letterSpacing: 1.5,
-                              ),
-                              children: [
-                                const TextSpan(text: 'ZENVYRO LABS '),
-                                TextSpan(
-                                  text: 'X',
-                                  style: TextStyle(
-                                    color: AppColors.skyBlue.withValues(alpha: 0.9),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const TextSpan(text: ' AWAIS'),
-                              ],
+                          Text(
+                            'ZENVYRO LABS',
+                            style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white.withValues(alpha: 0.9),
+                              letterSpacing: 1.5,
                             ),
                           ),
                           Text(

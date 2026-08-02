@@ -171,5 +171,20 @@
   "create_tag": "نیا ٹیگ بنائیں",
   "tag_name": "ٹیگ کا نام",
   "tag_color": "ٹیگ کا رنگ",
-  "update_entry": "اپ ڈیٹ کریں"
+  "update_entry": "اپ ڈیٹ کریں",
+  "amount": "رقم",
+  "description": "تفصیل",
+  "edit_cash_in": "کیش ان میں ترمیم کریں",
+  "edit_cash_out": "کیش آؤٹ میں ترمیم کریں",
+  "cash_in_credit": "کیش ان (کریڈٹ)",
+  "cash_out_debit": "کیش آؤٹ (ڈیبٹ)",
+  "change": "تبدیل کریں",
+  "attach_receipt": "رسید کی تصویر منسلک کریں",
+  "required": "ضروری ہے",
+  "select_party_error": "براہ کرم {} منتخب کریں",
+  "transaction_saved": "لین دین کامیابی سے محفوظ ہو گیا",
+  "transaction_updated": "لین دین کامیابی سے اپ ڈیٹ ہو گیا",
+  "error": "خرابی: {}",
+  "generating_report": "رپورٹ تیار ہو رہی ہے، براہ کرم انتظار کریں...",
+  "no_notifications": "کوئی اطلاع نہیں ملی"
 }

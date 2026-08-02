@@ -25,6 +25,10 @@ final bannersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   return await ref.watch(adminRepositoryProvider).getBanners();
 });
 
+final systemSettingsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+  return await ref.watch(adminRepositoryProvider).getSystemSettings();
+});
+
 class AdminActionsNotifier extends StateNotifier<AsyncValue<void>> {
   final AdminRepository _repository;
   final Ref _ref;
@@ -36,6 +40,17 @@ class AdminActionsNotifier extends StateNotifier<AsyncValue<void>> {
     try {
       await _repository.updateBlockStatus(userId, isBlocked);
       _ref.invalidate(adminUsersProvider);
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> updateSystemSetting(String key, String value) async {
+    state = const AsyncValue.loading();
+    try {
+      await _repository.updateSystemSetting(key, value);
+      _ref.invalidate(systemSettingsProvider);
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);

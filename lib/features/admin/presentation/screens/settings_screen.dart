@@ -9,6 +9,8 @@ import 'package:khataplus/core/utils/navigation_utils.dart';
 import 'announcement_management_screen.dart';
 import 'push_notification_screen.dart';
 import 'banner_management_screen.dart';
+import 'policy_edit_screen.dart';
+import '../providers/admin_provider.dart';
 
 import 'package:easy_localization/easy_localization.dart';
 
@@ -18,6 +20,7 @@ class AdminSettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final settingsAsync = ref.watch(systemSettingsProvider);
 
     return Scaffold(
       backgroundColor: isDarkMode ? AppColors.backgroundDark : AppColors.background,
@@ -50,82 +53,126 @@ class AdminSettingsScreen extends ConsumerWidget {
             ),
           ),
         ],
-        body: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            _buildSettingsSection(
-              'communication'.tr(),
-              [
-                _buildSettingsItem(
-                  Icons.campaign_rounded,
-                  'system_announcements'.tr(),
-                  'system_alerts_desc'.tr(),
-                  isDarkMode,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AnnouncementManagementScreen()),
+        body: settingsAsync.when(
+          data: (settings) => ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              _buildSettingsSection(
+                'communication'.tr(),
+                [
+                  _buildSettingsItem(
+                    Icons.campaign_rounded,
+                    'system_announcements'.tr(),
+                    'system_alerts_desc'.tr(),
+                    isDarkMode,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AnnouncementManagementScreen()),
+                    ),
                   ),
-                ),
-                _buildSettingsItem(
-                  Icons.send_rounded,
-                  'broadcaster'.tr(),
-                  'broadcast_desc'.tr(),
-                  isDarkMode,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const PushNotificationScreen()),
+                  _buildSettingsItem(
+                    Icons.send_rounded,
+                    'broadcaster'.tr(),
+                    'broadcast_desc'.tr(),
+                    isDarkMode,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PushNotificationScreen()),
+                    ),
                   ),
-                ),
-                _buildSettingsItem(
-                  Icons.view_carousel_rounded,
-                  'marketing_banners'.tr(),
-                  'manage_sliders_desc'.tr(),
-                  isDarkMode,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const BannerManagementScreen()),
+                  _buildSettingsItem(
+                    Icons.view_carousel_rounded,
+                    'marketing_banners'.tr(),
+                    'manage_sliders_desc'.tr(),
+                    isDarkMode,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const BannerManagementScreen()),
+                    ),
                   ),
-                ),
-              ],
-              isDarkMode,
-            ),
-            const SizedBox(height: 24),
-            _buildSettingsSection(
-              'app_config'.tr(),
-              [
-                _buildSettingsItem(Icons.info_rounded, 'app_version'.tr(), 'v1.0.0 Stable', isDarkMode),
-                _buildSettingsItem(Icons.build_circle_rounded, 'maintenance_mode'.tr(), 'maintenance_desc'.tr(), isDarkMode, showSwitch: true),
-              ],
-              isDarkMode,
-            ),
-            const SizedBox(height: 24),
-            _buildSettingsSection(
-              'policy_mgmt'.tr(),
-              [
-                _buildSettingsItem(Icons.description_rounded, 'Terms & Conditions', 'last_updated'.tr(), isDarkMode),
-                _buildSettingsItem(Icons.privacy_tip_rounded, 'Privacy Policy', 'last_updated'.tr(), isDarkMode),
-              ],
-              isDarkMode,
-            ),
-            const SizedBox(height: 40),
-            ElevatedButton(
-              onPressed: () async {
-                await ref.read(supabaseServiceProvider).signOut();
-                if (context.mounted) {
-                  NavigationUtils.pushReplacement(context, const LoginScreen());
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.danger,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 56),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                elevation: 0,
+                ],
+                isDarkMode,
               ),
-              child: Text('logout_admin'.tr(), style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 16)),
-            ),
-            const SizedBox(height: 100),
-          ],
+              const SizedBox(height: 24),
+              _buildSettingsSection(
+                'app_config'.tr(),
+                [
+                  _buildSettingsItem(Icons.info_rounded, 'app_version'.tr(), 'v1.0.0 Stable', isDarkMode),
+                  _buildSettingsItem(
+                    Icons.build_circle_rounded, 
+                    'maintenance_mode'.tr(), 
+                    'maintenance_desc'.tr(), 
+                    isDarkMode, 
+                    showSwitch: true,
+                    switchValue: settings['maintenance_mode'] == 'true',
+                    onSwitchChanged: (val) {
+                      ref.read(adminActionsProvider.notifier).updateSystemSetting('maintenance_mode', val.toString());
+                    },
+                  ),
+                ],
+                isDarkMode,
+              ),
+              const SizedBox(height: 24),
+              _buildSettingsSection(
+                'policy_mgmt'.tr(),
+                [
+                  _buildSettingsItem(
+                    Icons.description_rounded, 
+                    'Terms & Conditions', 
+                    'last_updated'.tr(), 
+                    isDarkMode,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PolicyEditScreen(
+                          title: 'Terms & Conditions',
+                          settingKey: 'terms_and_conditions',
+                          initialValue: settings['terms_and_conditions'] ?? '',
+                        ),
+                      ),
+                    ),
+                  ),
+                  _buildSettingsItem(
+                    Icons.privacy_tip_rounded, 
+                    'Privacy Policy', 
+                    'last_updated'.tr(), 
+                    isDarkMode,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PolicyEditScreen(
+                          title: 'Privacy Policy',
+                          settingKey: 'privacy_policy',
+                          initialValue: settings['privacy_policy'] ?? '',
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+                isDarkMode,
+              ),
+              const SizedBox(height: 40),
+              ElevatedButton(
+                onPressed: () async {
+                  await ref.read(supabaseServiceProvider).signOut();
+                  if (context.mounted) {
+                    NavigationUtils.pushReplacement(context, const LoginScreen());
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.danger,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 56),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  elevation: 0,
+                ),
+                child: Text('logout_admin'.tr(), style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 16)),
+              ),
+              const SizedBox(height: 100),
+            ],
+          ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, _) => Center(child: Text('Error: $err')),
         ),
       ),
     );
@@ -165,7 +212,16 @@ class AdminSettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSettingsItem(IconData icon, String title, String value, bool isDarkMode, {bool showSwitch = false, VoidCallback? onTap}) {
+  Widget _buildSettingsItem(
+    IconData icon, 
+    String title, 
+    String value, 
+    bool isDarkMode, {
+    bool showSwitch = false, 
+    bool switchValue = false,
+    ValueChanged<bool>? onSwitchChanged,
+    VoidCallback? onTap,
+  }) {
     return Material(
       color: Colors.transparent,
       child: ListTile(
@@ -196,7 +252,7 @@ class AdminSettingsScreen extends ConsumerWidget {
           ),
         ),
         trailing: showSwitch 
-          ? Switch.adaptive(value: false, onChanged: (v) {}, activeColor: AppColors.adminPrimary) 
+          ? Switch.adaptive(value: switchValue, onChanged: onSwitchChanged, activeColor: AppColors.adminPrimary)
           : Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.textSecondary.withValues(alpha: 0.5)),
       ),
     );

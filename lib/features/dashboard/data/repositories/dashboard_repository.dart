@@ -65,10 +65,11 @@ class DashboardRepository {
         }
 
         final now = DateTime.now();
-        final today = DateTime(now.year, now.month, now.day);
+        final startOfToday = DateTime(now.year, now.month, now.day);
         
         double cashIn = 0;
         double cashOut = 0;
+        
         final recentModels = transactions.map((t) => TransactionModel(
           id: t.id,
           businessId: t.businessId,
@@ -85,9 +86,13 @@ class DashboardRepository {
         )).toList();
 
         for (var t in transactions) {
-          if (t.createdAt.isAfter(today)) {
-            if (t.type == 'credit') cashIn += t.amount;
-            else cashOut += t.amount;
+          // Include everything from the start of the current calendar day
+          if (t.createdAt.isAtSameMomentAs(startOfToday) || t.createdAt.isAfter(startOfToday)) {
+            if (t.type == 'credit') {
+              cashIn += t.amount;
+            } else {
+              cashOut += t.amount;
+            }
           }
         }
 

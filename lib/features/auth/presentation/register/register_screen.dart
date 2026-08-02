@@ -262,25 +262,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with TickerProv
                             const SizedBox(height: 30),
                             const AppLogo(size: 70, animate: false),
                             const SizedBox(height: 8),
-                            RichText(
-                              text: TextSpan(
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                  letterSpacing: 2.0,
-                                ),
-                                children: [
-                                  const TextSpan(text: 'ZENVYRO LABS '),
-                                  const TextSpan(
-                                    text: 'X',
-                                    style: TextStyle(
-                                      color: AppColors.skyBlue,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const TextSpan(text: ' AWAIS'),
-                                ],
+                            Text(
+                              'ZENVYRO LABS',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white.withValues(alpha: 0.8),
+                                letterSpacing: 2.0,
                               ),
                             ),
                             const SizedBox(height: 24),

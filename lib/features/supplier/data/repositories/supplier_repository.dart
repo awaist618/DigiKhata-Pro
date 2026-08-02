@@ -2,11 +2,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:khataplus/core/database/app_database.dart';
 import 'package:drift/drift.dart';
 import 'dart:convert';
+import 'package:uuid/uuid.dart';
 import '../models/supplier_model.dart';
 
 class SupplierRepository {
   final SupabaseClient _client;
   final AppDatabase _db;
+  final _uuid = const Uuid();
 
   SupplierRepository(this._client, this._db);
 
@@ -76,7 +78,7 @@ class SupplierRepository {
   }
 
   Future<void> addSupplier(SupplierModel supplier) async {
-    final id = supplier.id.isEmpty ? DateTime.now().millisecondsSinceEpoch.toString() : supplier.id;
+    final id = supplier.id.isEmpty ? _uuid.v4() : supplier.id;
     final updatedSupplier = supplier.copyWith(id: id);
 
     await _db.into(_db.suppliers).insert(SuppliersCompanion.insert(

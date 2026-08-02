@@ -220,49 +220,51 @@ class _BannerManagementScreenState extends ConsumerState<BannerManagementScreen>
             ),
           ),
         ],
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(32),
-                decoration: BoxDecoration(
-                  color: AppColors.adminPrimary.withValues(alpha: 0.05),
-                  shape: BoxShape.circle,
+        body: ListView(
+          padding: const EdgeInsets.symmetric(vertical: 40),
+          children: [
+            Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: AppColors.adminPrimary.withValues(alpha: 0.05),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.view_carousel_rounded, size: 80, color: AppColors.adminPrimary.withValues(alpha: 0.2)),
                 ),
-                child: Icon(Icons.view_carousel_rounded, size: 80, color: AppColors.adminPrimary.withValues(alpha: 0.2)),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'banner_system'.tr(), 
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w800, 
-                  fontSize: 18,
-                  color: isDarkMode ? Colors.white : AppColors.textPrimary,
+                const SizedBox(height: 24),
+                Text(
+                  'banner_system'.tr(), 
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w800, 
+                    fontSize: 18,
+                    color: isDarkMode ? Colors.white : AppColors.textPrimary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'add_banner_desc'.tr(),
-                style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 13),
-              ),
-              const SizedBox(height: 40),
-              ElevatedButton.icon(
-                onPressed: () => _showAddDialog(isDarkMode),
-                icon: const Icon(Icons.add_rounded),
-                label: Text('add_new_banner'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.adminPrimary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 0,
+                const SizedBox(height: 8),
+                Text(
+                  'add_banner_desc'.tr(),
+                  style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 13),
                 ),
-              ),
-              const SizedBox(height: 40),
-              _buildExistingBanners(isDarkMode),
-            ],
-          ),
+                const SizedBox(height: 40),
+                ElevatedButton.icon(
+                  onPressed: () => _showAddDialog(isDarkMode),
+                  icon: const Icon(Icons.add_rounded),
+                  label: Text('add_new_banner'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.adminPrimary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 0,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 40),
+            _buildExistingBanners(isDarkMode),
+          ],
         ),
       ),
     );

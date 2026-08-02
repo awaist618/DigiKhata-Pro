@@ -15,7 +15,7 @@ import 'package:khataplus/features/admin/presentation/screens/admin_main_wrapper
 import 'package:khataplus/features/profile/presentation/providers/profile_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
-  const SplashScreen({super.key});
+  SplashScreen({super.key});
 
   @override
   ConsumerState<SplashScreen> createState() => _SplashScreenState();
