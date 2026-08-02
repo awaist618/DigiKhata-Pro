@@ -12,5 +12,7 @@
 # Keep models to prevent issues with JSON serialization
 -keep class com.example.khataplus.features.**.data.models.** { *; }
 
-# Fix R8 missing classes errors for Play Core (Deferred Components)
+# Fix R8 missing classes errors for Play Core (Deferred Components) and AndroidX Window
 -dontwarn com.google.android.play.core.**
+-dontwarn androidx.window.extensions.**
+-dontwarn androidx.window.sidecar.**
